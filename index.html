@@ -104,7 +104,10 @@ ul.card.rows{padding:2px 16px}
 .row .t b{display:block;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .row .t small{color:var(--muted);font-size:12px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .chip{width:40px;height:40px;border-radius:13px;background:var(--track);color:var(--ink-2);display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:15px;overflow:hidden;flex:none}
-.chip[style*="--cc"]{background:color-mix(in srgb,var(--cc) 24%,var(--surface))}
+.chip.emo{background:var(--track)}
+/* icônes en noir et blanc, sobres */
+.chip.emo,.icons label > span:first-of-type{filter:grayscale(1) contrast(1.05)}
+:root[data-mode="dark"] .chip.emo,:root[data-theme="dark"]:not([data-mode="light"]) .chip.emo{filter:grayscale(1) brightness(1.15)}
 .chip.emo{font-size:19px;font-family:system-ui,"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif}
 .chip img{width:100%;height:100%;object-fit:cover}
 .amt{font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -1265,7 +1268,7 @@ function openCat(c, kind, parentId) {
     <label class="f"><span>Nom</span><input type="text" id="f-name" maxlength="30" value="${esc(c ? c.name : "")}"></label>
     <label class="f"><span>Catégorie parente</span><select id="f-parent" ${hasKids ? `disabled aria-describedby="par-hint"` : ""}><option value="">Aucune, c'est une catégorie principale</option>${tops.map(x => `<option value="${esc(x.id)}" ${x.id === par ? "selected" : ""}>${esc(x.name)}</option>`).join("")}</select></label>
     ${hasKids ? `<small class="hint" id="par-hint" style="margin:0">Cette catégorie a des sous-catégories : elle reste une catégorie principale.</small>` : ""}
-    <fieldset><legend>Couleur</legend><div class="swatches">${COLORS.map(([h, n]) => `<label><input type="radio" name="ccolor" value="${h}" ${catDraft.color === h ? "checked" : ""}><span class="dot" style="--c:${h}" aria-hidden="true"></span><span class="sr">${n}</span></label>`).join("")}</div></fieldset>
+    <fieldset><legend>Couleur dans les graphiques</legend><div class="swatches">${COLORS.map(([h, n]) => `<label><input type="radio" name="ccolor" value="${h}" ${catDraft.color === h ? "checked" : ""}><span class="dot" style="--c:${h}" aria-hidden="true"></span><span class="sr">${n}</span></label>`).join("")}</div></fieldset>
     <fieldset><legend>Icône</legend><div class="icons">${icons}<label><input type="radio" name="cicon" id="cicon-img" value="img" ${catDraft.icon === "img" ? "checked" : ""} ${catDraft.img ? "" : "disabled"}><span aria-hidden="true" id="img-prev">${catDraft.img ? `<img src="${esc(catDraft.img)}" alt="">` : "🖼️"}</span><span class="sr">Image personnelle</span></label></div></fieldset>
     <label class="filebtn"><input type="file" id="c-img" accept="image/*"><span class="btn ghost">Choisir une image (photo, logo)…</span></label>
     <div class="err" id="f-err" role="alert"></div>
