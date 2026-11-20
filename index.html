@@ -5,8 +5,8 @@
 <meta name="viewport" id="vp" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Flousi</title>
 <link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=2">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=2">
 <meta name="application-name" content="Flousi">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#1D5FA6">
@@ -24,6 +24,7 @@
   --accent:#0E5F57; --accent-ink:#FFFFFF; --hero:#12302D; --hero-ink:#F1F5F0; --hero-muted:#A9BDB8; --rule:#E3A72F;
   --s1:#2a78d6; --s2:#eb6834; --good:#0ca30c; --warn:#fab219; --crit:#d03b3b; --track:#E2E8E4; --other:#9AA6A2;
   --shadow:0 1px 2px rgba(16,32,48,.05),0 6px 20px rgba(16,32,48,.07);
+  --glass-bg:rgba(255,255,255,.52); --glass-strong:rgba(255,255,255,.74); --glass-brd:rgba(255,255,255,.75); --glass-hi:rgba(255,255,255,.95); --glass-sh:0 8px 28px rgba(20,40,80,.12);
   --display:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;
   --body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
   color-scheme:light;
@@ -32,13 +33,13 @@
   :root:not([data-theme="light"]):not([data-mode="light"]){
     --bg:#0E1514; --surface:#172120; --ink:#EEF2EE; --ink-2:#B8C4C0; --muted:#8C9995; --line:#2A3735;
     --accent:#56BDB1; --accent-ink:#06211E; --hero:#1C2D2A; --hero-ink:#F1F5F0; --hero-muted:#9DB1AC;
-    --s1:#3987e5; --s2:#d95926; --crit:#e66767; --track:#26312F; --other:#66726F; --shadow:0 1px 2px rgba(0,0,0,.35),0 6px 20px rgba(0,0,0,.22); color-scheme:dark;
+    --s1:#3987e5; --s2:#d95926; --crit:#e66767; --track:#26312F; --other:#66726F; --shadow:0 1px 2px rgba(0,0,0,.35),0 6px 20px rgba(0,0,0,.22); --glass-bg:rgba(30,36,46,.48); --glass-strong:rgba(26,31,40,.76); --glass-brd:rgba(255,255,255,.13); --glass-hi:rgba(255,255,255,.16); --glass-sh:0 8px 28px rgba(0,0,0,.38); color-scheme:dark;
   }
 }
 :root[data-theme="dark"]:not([data-mode="light"]),:root[data-mode="dark"]{
   --bg:#0E1514; --surface:#172120; --ink:#EEF2EE; --ink-2:#B8C4C0; --muted:#8C9995; --line:#2A3735;
   --accent:#56BDB1; --accent-ink:#06211E; --hero:#1C2D2A; --hero-ink:#F1F5F0; --hero-muted:#9DB1AC;
-  --s1:#3987e5; --s2:#d95926; --crit:#e66767; --track:#26312F; --other:#66726F; --shadow:0 1px 2px rgba(0,0,0,.35),0 6px 20px rgba(0,0,0,.22); color-scheme:dark;
+  --s1:#3987e5; --s2:#d95926; --crit:#e66767; --track:#26312F; --other:#66726F; --shadow:0 1px 2px rgba(0,0,0,.35),0 6px 20px rgba(0,0,0,.22); --glass-bg:rgba(30,36,46,.48); --glass-strong:rgba(26,31,40,.76); --glass-brd:rgba(255,255,255,.13); --glass-hi:rgba(255,255,255,.16); --glass-sh:0 8px 28px rgba(0,0,0,.38); color-scheme:dark;
 }
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
@@ -299,6 +300,54 @@ li.sw.swiping > .row{border-radius:12px}
   @keyframes up{from{transform:translateY(28px)}to{transform:none}}
 }
 @media (max-width:360px){.f2{grid-template-columns:1fr}}
+/* pas de cadre autour des titres qui reçoivent le focus (lecteurs d'écran) */
+[tabindex="-1"]:focus,[tabindex="-1"]:focus-visible{outline:none}
+
+/* camembert */
+.donut{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0 4px}
+.donut .zoomable{width:min(250px,80vw)}
+.donut svg{width:100%;height:auto;display:block}
+.donut .ring{transform-origin:110px 110px}
+@media (prefers-reduced-motion:no-preference){.donut .ring{animation:ringin .7s cubic-bezier(.2,.8,.2,1) both}@keyframes ringin{from{transform:rotate(-70deg) scale(.86);opacity:0}}}
+.donut .c1{font-family:var(--display);font-weight:700;font-size:26px;fill:var(--ink)}
+.donut .c2{font-size:11px;fill:var(--muted);font-family:var(--body)}
+.donut .arc{cursor:pointer;transition:opacity .15s}
+.donut .arc:hover{opacity:.85}
+
+/* tri des catégories */
+.cats .cat-line{display:flex;align-items:center;gap:4px}
+.cats .cat-line .row{flex:1;min-width:0;border-bottom:1px solid var(--line)}
+.cats > li:last-child > .cat-line:only-child .row,.cats > li:last-child ul.sub > li:last-child .row{border-bottom:0}
+.drag{width:42px;height:42px;flex:none;display:grid;place-items:center;color:var(--muted);touch-action:none;cursor:grab;border-radius:12px}
+.drag svg{width:20px;height:20px;fill:currentColor}
+.drag:active{cursor:grabbing;background:var(--track)}
+.cats li.dragging{position:relative;z-index:6;background:var(--surface);border-radius:14px;box-shadow:0 12px 30px rgba(0,0,0,.2)}
+.cats li.dragging .row{border-bottom-color:transparent}
+
+/* ===== style « verre liquide » ===== */
+:root[data-style="glass"] body{background:
+  radial-gradient(55% 40% at 8% 6%,color-mix(in srgb,var(--accent) 52%,transparent),transparent 70%),
+  radial-gradient(45% 35% at 96% 24%,color-mix(in srgb,var(--rule) 44%,transparent),transparent 70%),
+  radial-gradient(55% 45% at 18% 92%,color-mix(in srgb,#e87ba4 32%,transparent),transparent 70%),
+  radial-gradient(50% 40% at 92% 86%,color-mix(in srgb,#6EA8EC 40%,transparent),transparent 70%),var(--bg);background-attachment:fixed}
+:root[data-style="glass"] #app{background:transparent}
+:root[data-style="glass"] :is(.card,.tile,.gear,.banner,.period,.switch button,.pill-btn,input[type=text],input[type=search],input[type=date],input[type=number],select,.btn.ghost,.btn.danger,.zbar button,.seg){background:var(--glass-bg);-webkit-backdrop-filter:blur(20px) saturate(170%);backdrop-filter:blur(20px) saturate(170%);border:1px solid var(--glass-brd);box-shadow:inset 0 1px 0 var(--glass-hi),var(--glass-sh)}
+:root[data-style="glass"] .seg{box-shadow:inset 0 1px 0 var(--glass-hi)}
+:root[data-style="glass"] .seg [aria-pressed="true"],:root[data-style="glass"] .seg input:checked + span{background:var(--glass-strong);box-shadow:inset 0 1px 0 var(--glass-hi),0 2px 8px rgba(0,0,0,.1)}
+:root[data-style="glass"] .pill-btn[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+:root[data-style="glass"] .gear[aria-current]{background:var(--accent);color:var(--accent-ink)}
+:root[data-style="glass"] :is(input,select):focus{box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 28%,transparent)}
+:root[data-style="glass"] nav.tabs{margin:0 10px calc(8px + env(safe-area-inset-bottom));padding:6px 4px;border-radius:30px;background:var(--glass-strong);-webkit-backdrop-filter:blur(26px) saturate(180%);backdrop-filter:blur(26px) saturate(180%);border:1px solid var(--glass-brd);box-shadow:inset 0 1px 0 var(--glass-hi),0 10px 30px rgba(0,0,0,.16)}
+:root[data-style="glass"] .fab{bottom:calc(104px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--accent) 80%,transparent);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.4);box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 10px 26px color-mix(in srgb,var(--accent) 40%,transparent)}
+:root[data-style="glass"] .btn:not(.ghost):not(.danger){background:color-mix(in srgb,var(--accent) 86%,transparent);border:1px solid rgba(255,255,255,.3);box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 6px 18px color-mix(in srgb,var(--accent) 30%,transparent)}
+:root[data-style="glass"] .ledger{background:linear-gradient(150deg,color-mix(in srgb,var(--hero) 72%,transparent),color-mix(in srgb,var(--accent) 58%,transparent));-webkit-backdrop-filter:blur(22px) saturate(180%);backdrop-filter:blur(22px) saturate(180%);border:1px solid rgba(255,255,255,.25);box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 12px 30px rgba(0,0,0,.18)}
+:root[data-style="glass"] .sheet{background:var(--glass-strong);-webkit-backdrop-filter:blur(30px) saturate(180%);backdrop-filter:blur(30px) saturate(180%);border-top:1px solid var(--glass-brd)}
+:root[data-style="glass"] .sheet-wrap{background:rgba(6,20,30,.22);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+:root[data-style="glass"] .toast{background:rgba(18,22,28,.72);color:#fff;-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
+:root[data-style="glass"] li.sw > .row{background:transparent}
+:root[data-style="glass"] li.sw.swiping > .row,:root[data-style="glass"] .cats li.dragging{background:var(--glass-strong)}
+:root[data-style="glass"] .chip.emo,:root[data-style="glass"] .chip{box-shadow:inset 0 1px 0 var(--glass-hi)}
+@media (prefers-reduced-transparency:reduce){:root[data-style="glass"]{--glass-bg:var(--surface);--glass-strong:var(--surface)}}
 </style>
 <style id="theme-style"></style>
 </head>
@@ -343,7 +392,7 @@ const plur = (n, one, many) => n + " " + (n > 1 ? many : one);
 
 /* ================= préférences de l'appareil ================= */
 const PK = "carnet-prefs";
-let P = {mode: "auto", accent: "ocean", zoom: false, lastBackup: ""};
+let P = {style: "classic", mode: "auto", accent: "ocean", zoom: false, lastBackup: ""};
 try { Object.assign(P, JSON.parse(localStorage.getItem(PK)) || {}); } catch (e) {}
 const savePrefs = () => { try { localStorage.setItem(PK, JSON.stringify(P)); } catch (e) {} };
 const THEMES = {
@@ -361,6 +410,7 @@ function applyPrefs() {
   $("#theme-style").textContent = `:root{--accent:${t.l[0]};--hero:${t.l[1]};--bg:${t.l[2]};--accent-ink:#FFFFFF}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]):not([data-mode="light"]){${dk}}}
 :root[data-theme="dark"]:not([data-mode="light"]),:root[data-mode="dark"]{${dk}}`;
+  if (P.style === "glass") root.setAttribute("data-style", "glass"); else root.removeAttribute("data-style");
   root.classList.toggle("nozoom", !P.zoom);
   $("#vp").setAttribute("content", P.zoom ? "width=device-width, initial-scale=1" : "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no");
 }
@@ -856,12 +906,19 @@ function balHover(e) {
   balShow(Math.max(0, Math.min(n - 1, Math.round((vx - bal.X0) / bal.W * (n - 1)))));
 }
 function pieChart(sp, total, dc) {
-  const top = sp.slice(0, 7).map(([c, v]) => ({id: c, name: catName(c), v, color: cat(c)?.color || "var(--other)"}));
-  const rest = sp.slice(7).reduce((s, x) => s + x[1], 0); if (rest > 0) top.push({name: "Autres", v: rest, color: "var(--other)"});
-  const R = 52, C = 2 * Math.PI * R; let off = 0;
-  const arcs = top.map(s => { const len = s.v / total * C, gap = top.length > 1 && len > 4 ? 2 : 0; const h = `<circle cx="75" cy="75" r="${R}" fill="none" stroke="${esc(s.color)}" stroke-width="26" ${s.id ? `data-act="cat-detail" data-id="${esc(s.id)}" style="cursor:pointer"` : ""} stroke-dasharray="${(len - gap).toFixed(2)} ${(C - len + gap).toFixed(2)}" stroke-dashoffset="${(-off).toFixed(2)}" transform="rotate(-90 75 75)"></circle>`; off += len; return h; }).join("");
-  return `<div class="pie"><div>${zoomWrap(`<svg viewBox="0 0 150 150" aria-hidden="true">${arcs}<text x="75" y="72" text-anchor="middle" class="pc1">${compact(total)}</text><text x="75" y="88" text-anchor="middle" class="pc2">${esc(sym(dc))} au total</text></svg>`)}</div>
-    <ul class="pie-leg">${top.map(s => { const pc = Math.round(s.v / total * 100); return `<li>${s.id ? `<button type="button" data-act="cat-detail" data-id="${esc(s.id)}" aria-label="${esc(s.name + ", " + pc + " %, " + say(s.v, dc) + ". Voir le détail")}">` : `<div>`}<i style="background:${esc(s.color)}" aria-hidden="true"></i><span>${esc(s.name)}</span><small class="num">${pc} %</small><b class="num">${NF.format(s.v / 100)}</b>${s.id ? "</button>" : "</div>"}</li>`; }).join("")}</ul></div>`;
+  const segs = sp.slice(0, 8).map(([c, v]) => ({id: c, v, color: cat(c)?.color || "var(--other)"}));
+  const rest = sp.slice(8).reduce((x, y) => x + y[1], 0); if (rest > 0) segs.push({v: rest, color: "var(--other)"});
+  const R = 80, C = 2 * Math.PI * R; let off = 0;
+  const arcs = segs.map(sg => { const len = sg.v / total * C, gap = segs.length > 1 && len > 6 ? 2.5 : 0;
+    const h = `<circle class="arc" cx="110" cy="110" r="${R}" fill="none" stroke="${esc(sg.color)}" stroke-width="30" ${sg.id ? `data-act="cat-detail" data-id="${esc(sg.id)}"` : ""} stroke-dasharray="${Math.max(0, len - gap).toFixed(2)} ${(C - len + gap).toFixed(2)}" stroke-dashoffset="${(-off).toFixed(2)}" transform="rotate(-90 110 110)"></circle>`; off += len; return h; }).join("");
+  const word = statKind === "dep" ? "dépensés" : "reçus";
+  return `<div class="donut">${zoomWrap(`<svg viewBox="0 0 220 220" aria-hidden="true"><circle cx="110" cy="110" r="${R}" fill="none" stroke="var(--track)" stroke-width="30"/><g class="ring">${arcs}</g>
+    <circle cx="110" cy="110" r="62" fill="var(--surface)" opacity=".55"/>
+    <text x="110" y="110" text-anchor="middle" class="c1">${compact(total)}</text><text x="110" y="128" text-anchor="middle" class="c2">${esc(sym(dc))} ${word}</text><text x="110" y="143" text-anchor="middle" class="c2">${plur(sp.length, "catégorie", "catégories")}</text></svg>`)}</div>`;
+}
+function rankList(sp, tot, dc) {
+  const top = sp.length ? sp[0][1] : 1;
+  return `<ul class="rows">${sp.map(([c, v]) => { const n = catName(c), pc = Math.round(v / tot * 100), cc = cat(c); return `<li><button type="button" class="rank" data-act="cat-detail" data-id="${esc(c)}" style="--cc:${esc(cc?.color || "var(--s1)")}" aria-label="${esc(n + ", " + pc + " %, " + say(v, dc) + ". Voir le détail")}">${chipHtml(cc)}<span>${esc(n)} <small class="num">${pc} %</small></span><span class="amt">${fmt(v, dc)} <span class="chev" aria-hidden="true">›</span></span><span class="track"><i style="width:${Math.max(2, v / top * 100)}%"></i></span></button></li>`; }).join("")}</ul>`;
 }
 function vStats() {
   const F = statF(), dc = F.out, word = plural(dc), f = flowsBetween(range.from, range.to, F), net = f.rev - f.dep;
@@ -882,7 +939,7 @@ function vStats() {
   if (statView === "cat") body = `<div class="sec-h" style="align-items:center;margin-bottom:-4px;flex-wrap:wrap"><h2>Par catégorie</h2>
       <div class="filters"><div class="seg" role="group" aria-label="Dépenses ou revenus"><button type="button" data-act="statkind" data-v="dep" aria-pressed="${statKind === "dep"}">Dépenses</button><button type="button" data-act="statkind" data-v="rev" aria-pressed="${statKind === "rev"}">Revenus</button></div>
       <div class="seg" role="group" aria-label="Type de graphique"><button type="button" data-act="catview" data-v="bars" aria-pressed="${catView === "bars"}">Barres</button><button type="button" data-act="catview" data-v="pie" aria-pressed="${catView === "pie"}">Camembert</button></div></div></div>
-    <div class="card">${!sp.length ? `<p class="empty">Aucun${statKind === "dep" ? "e dépense" : " revenu"} sur cette période pour ces comptes.</p>` : (catView === "pie" ? pieChart(sp, tot, dc) : `<ul class="rows">${sp.map(([c, v]) => { const n = catName(c), pc = Math.round(v / tot * 100), cc = cat(c); return `<li><button type="button" class="rank" data-act="cat-detail" data-id="${esc(c)}" style="--cc:${esc(cc?.color || "var(--s1)")}" aria-label="${esc(n + ", " + pc + " %, " + say(v, dc) + ". Voir le détail")}">${chipHtml(cc)}<span>${esc(n)} <small class="num">${pc} %</small></span><span class="amt">${fmt(v, dc)} <span class="chev" aria-hidden="true">›</span></span><span class="track"><i style="width:${Math.max(2, v / top * 100)}%"></i></span></button></li>`; }).join("")}</ul>`) + `<small class="hint" aria-hidden="true">Touchez une catégorie pour voir ses sous-catégories et ses opérations.</small>`}</div>`;
+    <div class="card">${!sp.length ? `<p class="empty">Aucun${statKind === "dep" ? "e dépense" : " revenu"} sur cette période pour ces comptes.</p>` : (catView === "pie" ? pieChart(sp, tot, dc) : "") + rankList(sp, tot, dc) + `<small class="hint" aria-hidden="true">Touchez une catégorie pour voir ses sous-catégories et ses opérations.</small>`}</div>`;
   else if (statView === "bal") body = `<div class="card">${balanceChart(F)}</div>`;
   else body = `<h2 class="sr">Revenus et dépenses par mois</h2><div class="card"><div class="legend" aria-hidden="true"><span><i style="background:var(--s1)"></i>Revenus</span><span><i style="background:var(--s2)"></i>Dépenses</span></div>${zoomWrap(svg)}
       <table class="mini"><caption class="sr">Revenus, dépenses et solde par mois, en ${esc(word)}</caption><thead><tr><th scope="col">Mois</th><th scope="col">Revenus</th><th scope="col">Dépenses</th><th scope="col">Solde</th></tr></thead><tbody>${ms.map((m, i) => `<tr><th scope="row"><button type="button" class="linkbtn" data-act="pick-month" data-m="${m}" aria-label="${esc(monthName(m))}, limiter la période à ce mois">${monthName(m, true)}${ms.length > 1 && m.slice(5) === "01" || i === 0 ? " " + m.slice(0, 4) : ""}</button></th><td>${NF.format(data[i].rev / 100)}</td><td>${NF.format(data[i].dep / 100)}</td><td>${NF.format((data[i].rev - data[i].dep) / 100)}</td></tr>`).join("")}</tbody></table>
@@ -921,22 +978,26 @@ function vDevises() {
       return `<li><button type="button" class="row" data-act="edit-cur" data-c="${esc(c.code)}" aria-label="${esc(c.name + ", " + (isB ? "devise de référence" : "1 " + c.name + " vaut " + NF4.format(c.rate) + " " + plural(b)) + ". Modifier")}"><span class="chip" aria-hidden="true">${esc(c.sym)}</span><span class="t"><b>${esc(c.name)}</b><small>${esc(c.code)}${isB ? " · devise de référence" : ""}</small></span><span class="amt">${isB ? "Référence" : esc(rt)}</span></button></li>`; }).join("")}</ul>
     <button type="button" class="btn ghost" data-act="new-cur">Ajouter une devise</button>`;
 }
+const GRIP = `<svg viewBox="0 0 20 20"><circle cx="7" cy="5" r="1.6"/><circle cx="13" cy="5" r="1.6"/><circle cx="7" cy="10" r="1.6"/><circle cx="13" cy="10" r="1.6"/><circle cx="7" cy="15" r="1.6"/><circle cx="13" cy="15" r="1.6"/></svg>`;
 function vCategories() {
   const counts = {}; allTx().forEach(t => { if (t.cat) counts[t.cat] = (counts[t.cat] || 0) + 1; });
   const row = (c, sub) => { const n = counts[c.id] || 0, k = kids(c.id).length;
     const info = [k ? plur(k, "sous-catégorie", "sous-catégories") : "", plur(n, "opération", "opérations")].filter(Boolean).join(" · ");
-    return `<button type="button" class="row" data-act="edit-cat" data-id="${esc(c.id)}" aria-label="${esc((sub ? "Sous-catégorie " : "") + c.name + ", " + info + ". Modifier")}">${chipHtml(c)}<span class="t"><b>${esc(c.name)}</b><small>${esc(info)}</small></span><span class="chev" aria-hidden="true">›</span></button>`; };
+    return `<button type="button" class="row" data-act="edit-cat" data-id="${esc(c.id)}" aria-label="${esc((sub ? "Sous-catégorie " : "") + c.name + ", " + info + ". Modifier")}">${chipHtml(c)}<span class="t"><b>${esc(c.name)}</b><small>${esc(info)}</small></span><span></span></button>`; };
+  const grip = (c, i, n) => `<button type="button" class="drag" data-drag="${esc(c.id)}" aria-label="${esc("Déplacer " + c.name + ", position " + (i + 1) + " sur " + n + ". Flèches haut et bas pour déplacer")}">${GRIP}</button>`;
   const tops = cats(catKind).filter(c => !c.parent);
   return backLink("reglages") + `<div class="seg wide" role="group" aria-label="Type de catégorie"><button type="button" data-act="catkind" data-v="dep" aria-pressed="${catKind === "dep"}">Dépenses</button><button type="button" data-act="catkind" data-v="rev" aria-pressed="${catKind === "rev"}">Revenus</button></div>
-    <ul class="card rows cats">${tops.length ? tops.map(c => { const ks = kids(c.id); return `<li>${row(c)}${ks.length ? `<ul class="sub" aria-label="${esc("Sous-catégories de " + c.name)}">${ks.map(k => `<li>${row(k, true)}</li>`).join("")}</ul>` : ""}</li>`; }).join("") : `<li class="empty">Aucune catégorie.</li>`}</ul>
+    <ul class="card rows cats">${tops.length ? tops.map((c, i) => { const ks = kids(c.id); return `<li data-cat="${esc(c.id)}"><div class="cat-line">${row(c)}${grip(c, i, tops.length)}</div>${ks.length ? `<ul class="sub" aria-label="${esc("Sous-catégories de " + c.name)}">${ks.map((k, j) => `<li data-cat="${esc(k.id)}"><div class="cat-line">${row(k, true)}${grip(k, j, ks.length)}</div></li>`).join("")}</ul>` : ""}</li>`; }).join("") : `<li class="empty">Aucune catégorie.</li>`}</ul>
     <button type="button" class="btn" data-act="new-cat" data-k="${catKind}">Nouvelle catégorie ${catKind === "dep" ? "de dépense" : "de revenu"}</button>
-    <p class="hint">Ouvrez une catégorie pour changer son icône, son image ou sa couleur, lui ajouter des sous-catégories, ou la fusionner avec une autre en la supprimant.</p>`;
+    <p class="hint">Faites glisser la poignée <span aria-hidden="true">⋮⋮</span> pour changer l'ordre des catégories : cet ordre est repris dans les listes de choix. Ouvrez une catégorie pour changer son icône, sa couleur dans les graphiques, lui ajouter des sous-catégories ou la fusionner avec une autre.</p>`;
 }
 function vApparence() {
   const radio = (name, v, label, cur) => `<label><input type="radio" name="${name}" id="${name}-${v}" value="${v}" ${cur === v ? "checked" : ""}><span>${label}</span></label>`;
   return backLink("reglages") + `<form class="card" style="display:flex;flex-direction:column;gap:16px" onsubmit="return false">
     <fieldset><legend>Thème</legend><div class="seg wide">${radio("pmode", "auto", "Automatique", P.mode)}${radio("pmode", "light", "Clair", P.mode)}${radio("pmode", "dark", "Sombre", P.mode)}</div>
       <small class="hint">Automatique suit le réglage de votre téléphone ou de l'application Claude.</small></fieldset>
+    <fieldset><legend>Style</legend><div class="seg wide">${radio("pstyle", "classic", "Classique", P.style || "classic")}${radio("pstyle", "glass", "Verre liquide", P.style || "classic")}</div>
+      <small class="hint">Verre liquide : panneaux translucides et flous sur un fond coloré.</small></fieldset>
     <fieldset><legend>Couleurs</legend><div class="swatches">${Object.entries(THEMES).map(([k, t]) => `<label><input type="radio" name="paccent" id="paccent-${k}" value="${k}" ${P.accent === k ? "checked" : ""}><span class="dot" style="--c:${t.l[0]}" aria-hidden="true"></span><span>${t.name}</span></label>`).join("")}</div></fieldset>
     <fieldset><legend>Zoom</legend><label class="check"><input type="checkbox" id="pzoom" ${P.zoom ? "checked" : ""} aria-describedby="zoom-hint"><span>Autoriser le zoom de toute la page</span></label>
       <small class="hint" id="zoom-hint" style="margin-top:0">Désactivé, seuls les graphiques s'agrandissent (pincer, ou boutons + et −). Activez-le si vous avez besoin d'agrandir le texte. Dans l'application Claude, c'est elle qui décide du zoom de la page.</small></fieldset>
@@ -1675,6 +1736,7 @@ document.addEventListener("change", async e => {
   if (nm === "k") { const l = $("#f-acc-lab"); if (l) l.textContent = e.target.value === "lent" ? "Compte d'où sort l'argent" : "Compte où arrive l'argent"; }
   if (id === "bal-date" && bal) { const i = bal.ser.findIndex(p => p.d === e.target.value); if (i >= 0) balShow(i); }
   if (nm === "pmode") { P.mode = e.target.value; savePrefs(); applyPrefs(); announce("Thème " + e.target.nextElementSibling.textContent.toLowerCase()); }
+  if (nm === "pstyle") { P.style = e.target.value; savePrefs(); applyPrefs(); announce("Style " + e.target.nextElementSibling.textContent.toLowerCase()); }
   if (nm === "paccent") { P.accent = e.target.value; savePrefs(); applyPrefs(); announce("Couleurs " + THEMES[P.accent].name); }
   if (id === "pzoom") { P.zoom = e.target.checked; savePrefs(); applyPrefs(); announce(P.zoom ? "Zoom de la page autorisé" : "Zoom de la page désactivé, sauf graphiques"); }
   if (id === "c-img" && e.target.files[0] && catDraft) {
@@ -1751,6 +1813,48 @@ document.addEventListener("keydown", e => {
     if (r) { e.preventDefault(); const all = [...$("#view").querySelectorAll("li.sw > .row")], i = all.indexOf(r), n = all[i + 1] || all[i - 1]; deleteTxUndo(r.dataset.id, n && n.dataset.id); }
   }
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z" && undoFn && !/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)) { e.preventDefault(); runUndo(); }
+});
+
+/* ================= tri des catégories au doigt ================= */
+function reorderCats(ids) {
+  const set = new Set(ids), objs = ids.map(id => cat(id)).filter(Boolean); let k = 0;
+  S.meta.categories = S.meta.categories.map(c => set.has(c.id) ? objs[k++] : c);
+}
+function afterReorder(id, ids) {
+  touch("meta"); render();
+  const h = $("#view").querySelector(`.drag[data-drag="${CSS.escape(id)}"]`); if (h) h.focus({preventScroll: true});
+  announce(catName(id) + " en position " + (ids.indexOf(id) + 1) + " sur " + ids.length);
+}
+let dg = null;
+document.addEventListener("pointerdown", e => {
+  const h = e.target.closest && e.target.closest("#view .drag"); if (!h) return;
+  e.preventDefault(); const li = h.closest("li[data-cat]");
+  dg = {li, ul: li.parentElement, y: e.clientY, pid: e.pointerId, moved: false, id: li.dataset.cat};
+  li.classList.add("dragging"); try { h.setPointerCapture(e.pointerId); } catch (x) {}
+});
+document.addEventListener("pointermove", e => {
+  if (!dg || e.pointerId !== dg.pid) return;
+  const v = $("#view"), r = v.getBoundingClientRect(), b0 = v.scrollTop;
+  if (e.clientY > r.bottom - 50) v.scrollTop += 10; else if (e.clientY < r.top + 50) v.scrollTop -= 10;
+  dg.y -= v.scrollTop - b0;
+  let dy = e.clientY - dg.y;
+  const nx = dg.li.nextElementSibling, pv = dg.li.previousElementSibling;
+  if (nx && dy > nx.offsetHeight / 2) { dg.ul.insertBefore(nx, dg.li); dg.y += nx.offsetHeight; dy -= nx.offsetHeight; dg.moved = true; }
+  else if (pv && dy < -pv.offsetHeight / 2) { dg.ul.insertBefore(dg.li, pv); dg.y -= pv.offsetHeight; dy += pv.offsetHeight; dg.moved = true; }
+  dg.li.style.transform = `translateY(${dy}px)`;
+});
+function dgEnd(e) {
+  if (!dg || e.pointerId !== dg.pid) return;
+  const d = dg; dg = null; d.li.style.transform = ""; d.li.classList.remove("dragging");
+  if (!d.moved) return;
+  const ids = [...d.ul.children].map(li => li.dataset.cat).filter(Boolean); reorderCats(ids); afterReorder(d.id, ids);
+}
+document.addEventListener("pointerup", dgEnd); document.addEventListener("pointercancel", dgEnd);
+document.addEventListener("keydown", e => {
+  const h = e.target.closest && e.target.closest("#view .drag"); if (!h || (e.key !== "ArrowUp" && e.key !== "ArrowDown")) return;
+  e.preventDefault(); const li = h.closest("li[data-cat]"), ids = [...li.parentElement.children].map(x => x.dataset.cat).filter(Boolean);
+  const i = ids.indexOf(li.dataset.cat), j = e.key === "ArrowUp" ? i - 1 : i + 1; if (j < 0 || j >= ids.length) return announce(e.key === "ArrowUp" ? "Déjà en première position" : "Déjà en dernière position");
+  [ids[i], ids[j]] = [ids[j], ids[i]]; reorderCats(ids); afterReorder(li.dataset.cat, ids);
 });
 
 /* ================= démarrage ================= */
