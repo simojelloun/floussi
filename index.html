@@ -21,6 +21,7 @@
   --bg:#EDF1EE; --surface:#FBFCFA; --ink:#12211F; --ink-2:#4A5A57; --muted:#6E7C79; --line:#D5DDD9;
   --accent:#0E5F57; --accent-ink:#FFFFFF; --hero:#12302D; --hero-ink:#F1F5F0; --hero-muted:#A9BDB8; --rule:#E3A72F;
   --s1:#2a78d6; --s2:#eb6834; --good:#0ca30c; --warn:#fab219; --crit:#d03b3b; --track:#E2E8E4; --other:#9AA6A2;
+  --shadow:0 1px 2px rgba(16,32,48,.05),0 6px 20px rgba(16,32,48,.07);
   --display:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;
   --body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
   color-scheme:light;
@@ -29,13 +30,13 @@
   :root:not([data-theme="light"]):not([data-mode="light"]){
     --bg:#0E1514; --surface:#172120; --ink:#EEF2EE; --ink-2:#B8C4C0; --muted:#8C9995; --line:#2A3735;
     --accent:#56BDB1; --accent-ink:#06211E; --hero:#1C2D2A; --hero-ink:#F1F5F0; --hero-muted:#9DB1AC;
-    --s1:#3987e5; --s2:#d95926; --crit:#e66767; --track:#26312F; --other:#66726F; color-scheme:dark;
+    --s1:#3987e5; --s2:#d95926; --crit:#e66767; --track:#26312F; --other:#66726F; --shadow:0 1px 2px rgba(0,0,0,.35),0 6px 20px rgba(0,0,0,.22); color-scheme:dark;
   }
 }
 :root[data-theme="dark"]:not([data-mode="light"]),:root[data-mode="dark"]{
   --bg:#0E1514; --surface:#172120; --ink:#EEF2EE; --ink-2:#B8C4C0; --muted:#8C9995; --line:#2A3735;
   --accent:#56BDB1; --accent-ink:#06211E; --hero:#1C2D2A; --hero-ink:#F1F5F0; --hero-muted:#9DB1AC;
-  --s1:#3987e5; --s2:#d95926; --crit:#e66767; --track:#26312F; --other:#66726F; color-scheme:dark;
+  --s1:#3987e5; --s2:#d95926; --crit:#e66767; --track:#26312F; --other:#66726F; --shadow:0 1px 2px rgba(0,0,0,.35),0 6px 20px rgba(0,0,0,.22); color-scheme:dark;
 }
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
@@ -50,23 +51,31 @@ a{color:var(--accent)}
 #app{height:100%;max-width:520px;margin:0 auto;display:flex;flex-direction:column;background:var(--bg);position:relative}
 .skip{position:absolute;left:12px;top:-80px;z-index:30;background:var(--accent);color:var(--accent-ink);padding:10px 14px;border-radius:10px;font-weight:600}
 .skip:focus{top:10px}
-.top{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:14px 16px 8px}
-.top h1{font-family:var(--display);font-weight:700;font-size:22px;margin:0;letter-spacing:-.01em}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px 10px}
+.top h1{font-family:var(--display);font-weight:700;font-size:24px;margin:0;letter-spacing:-.01em}
 .top h1:focus:not(:focus-visible){outline:none}
 .top small{color:var(--muted);font-size:12px}
+.top-r{display:flex;align-items:center;gap:8px;flex:none}
+.gear{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;color:var(--ink-2);background:var(--surface);border:1px solid color-mix(in srgb,var(--line) 70%,transparent);box-shadow:var(--shadow)}
+.gear svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.gear[aria-current]{color:var(--accent-ink);background:var(--accent);border-color:var(--accent)}
 .brand{display:flex;align-items:center;gap:10px;min-width:0}.brand .logo{width:30px;height:30px;flex:none}
-.chip.acc{position:relative;padding-bottom:5px}.chip.acc i{position:absolute;left:8px;right:8px;bottom:5px;height:4px;border-radius:2px;background:var(--ac)}
-main{flex:1;overflow-y:auto;padding:4px 16px 96px;display:flex;flex-direction:column;gap:14px}
+.chip.acc{position:relative;padding-left:10px;font-size:14px}.chip.acc i{position:absolute;left:5px;top:7px;bottom:7px;width:4px;border-radius:2px;background:var(--ac)}
+main{flex:1;overflow-y:auto;padding:4px 16px 108px;display:flex;flex-direction:column;gap:16px}
 main > *{flex-shrink:0}
-nav.tabs{display:grid;grid-template-columns:repeat(6,1fr);background:var(--surface);border-top:1px solid var(--line)}
-nav.tabs a{padding:12px 1px 13px;text-align:center;font-size:11.5px;font-weight:500;color:var(--muted);text-decoration:none;border-top:2px solid transparent;margin-top:-1px}
-nav.tabs a[aria-current]{color:var(--accent);border-top-color:var(--accent);font-weight:600}
-.fab{position:absolute;right:16px;bottom:62px;width:56px;height:56px;border-radius:18px;background:var(--accent);color:var(--accent-ink);font-size:30px;line-height:1;box-shadow:0 6px 18px rgba(8,30,28,.28);display:grid;place-items:center}
+nav.tabs{display:grid;grid-template-columns:repeat(6,1fr);background:var(--surface);border-top:1px solid var(--line);padding:6px 2px calc(8px + env(safe-area-inset-bottom));box-shadow:0 -4px 18px rgba(16,32,48,.06)}
+nav.tabs a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:58px;font-size:12px;font-weight:500;color:var(--muted);text-decoration:none;letter-spacing:-.01em}
+nav.tabs .ti{display:grid;place-items:center;width:52px;height:30px;border-radius:15px;transition:background .2s}
+nav.tabs svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+nav.tabs a[aria-current]{color:var(--accent);font-weight:700}
+nav.tabs a[aria-current] .ti{background:color-mix(in srgb,var(--accent) 16%,transparent)}
+@media (max-width:370px){nav.tabs a{font-size:11px}nav.tabs .ti{width:44px}}
+.fab{position:absolute;right:16px;bottom:calc(92px + env(safe-area-inset-bottom));width:58px;height:58px;border-radius:20px;background:var(--accent);color:var(--accent-ink);font-size:30px;line-height:1;box-shadow:0 8px 22px color-mix(in srgb,var(--accent) 45%,transparent);display:grid;place-items:center}
 .fab:active{transform:scale(.96)}
 .back{display:inline-flex;align-items:center;gap:4px;font-weight:600;font-size:14px;text-decoration:none;align-self:flex-start;padding:4px 0}
 
 /* bandeau des soldes */
-.ledger{background:var(--hero);color:var(--hero-ink);border-radius:20px;display:grid;grid-template-columns:1fr 1fr;overflow:hidden}
+.ledger{background:linear-gradient(150deg,color-mix(in srgb,var(--hero) 76%,var(--accent)),var(--hero) 72%);color:var(--hero-ink);border-radius:22px;box-shadow:0 10px 26px color-mix(in srgb,var(--hero) 32%,transparent);display:grid;grid-template-columns:1fr 1fr;overflow:hidden}
 .ledger.one{grid-template-columns:1fr}
 .ledger > div{padding:16px 14px;display:flex;flex-direction:column;gap:3px;min-width:0}
 .ledger > div:nth-child(even){border-left:2px solid var(--rule)}
@@ -77,27 +86,27 @@ nav.tabs a[aria-current]{color:var(--accent);border-top-color:var(--accent);font
 .ledger .flow{font-size:12px;color:var(--hero-muted);display:flex;flex-direction:column;margin-top:6px}
 .ledger .flow b{color:var(--hero-ink);font-weight:500}
 
-.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px}
+.card{background:var(--surface);border:1px solid color-mix(in srgb,var(--line) 70%,transparent);border-radius:18px;padding:14px 16px;box-shadow:var(--shadow)}
 .sec-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:0 2px -6px}
-.sec-h h2,h2.sec-h{font-family:var(--display);font-size:16px;font-weight:700;margin:0}
+.sec-h h2,h2.sec-h{font-family:var(--display);font-size:17px;font-weight:700;margin:0;letter-spacing:-.01em}
 h2.sec-h{margin:0 2px -6px}
 .link{color:var(--accent);font-weight:600;font-size:13px;text-decoration:none}
 ul.rows,ul.pie-leg,ul.plain{list-style:none;margin:0;padding:0}
 ul.rows{display:flex;flex-direction:column}
-ul.card.rows{padding:2px 14px}
-.row{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);width:100%;text-align:left}
+ul.card.rows{padding:2px 16px}
+.row{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);width:100%;text-align:left}
 .rows > li:last-child > .row,.rows > li.row:last-child{border-bottom:0}
 .row .t{min-width:0}
 .row .t b{display:block;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .row .t small{color:var(--muted);font-size:12px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.chip{width:36px;height:36px;border-radius:11px;background:var(--track);color:var(--ink-2);display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:15px;overflow:hidden;flex:none}
+.chip{width:40px;height:40px;border-radius:13px;background:var(--track);color:var(--ink-2);display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:15px;overflow:hidden;flex:none}
 .chip[style*="--cc"]{background:color-mix(in srgb,var(--cc) 24%,var(--surface))}
 .chip.emo{font-size:19px;font-family:system-ui,"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif}
 .chip img{width:100%;height:100%;object-fit:cover}
 .amt{font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
 .amt.rev{color:var(--accent)} .amt.vir{color:var(--muted)}
 .rec-mark{color:var(--muted);font-weight:400;margin-left:4px}
-h3.day{font-size:12px;color:var(--muted);font-weight:600;padding:12px 0 2px;margin:0;font-family:var(--body)}
+h3.day{font-size:11px;color:var(--muted);font-weight:700;padding:14px 0 4px;margin:0;font-family:var(--body);text-transform:uppercase;letter-spacing:.07em}
 h3.day span{display:inline-block}h3.day span::first-letter{text-transform:uppercase}
 .bar-line{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 .switch{display:flex;align-items:center;gap:4px}
@@ -113,17 +122,21 @@ h3.day span{display:inline-block}h3.day span::first-letter{text-transform:upperc
 .seg.wide{display:flex}.seg.wide > *{flex:1;text-align:center}
 .filters{display:flex;gap:6px;flex-wrap:wrap}
 .pill-btn{padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-size:13px;font-weight:500;color:var(--ink-2);text-decoration:none;display:inline-flex;align-items:center;gap:6px;min-height:34px}
-.pill-btn[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.pill-btn[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 input[type=text],input[type=search],input[type=date],input[type=number],select{width:100%;padding:11px 12px;border-radius:11px;border:1px solid var(--line);background:var(--surface);min-height:44px}
 input[type=file]{font-size:13px;max-width:100%}
+input[type=text]:focus,input[type=search]:focus,input[type=date]:focus,input[type=number]:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}
 input[aria-invalid="true"],select[aria-invalid="true"]{border-color:var(--crit);box-shadow:0 0 0 1px var(--crit)}
 .empty{color:var(--muted);text-align:center;padding:22px 8px;font-size:14px;list-style:none;margin:0}
 .banner{background:var(--surface);border:1px dashed var(--rule);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px;font-size:13px;color:var(--ink-2)}
 .banner b{color:var(--ink)}
-.btn{padding:11px 16px;border-radius:12px;background:var(--accent);color:var(--accent-ink);font-weight:600;min-height:44px;text-align:center;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+.btn{padding:11px 16px;border-radius:14px;background:var(--accent);color:var(--accent-ink);font-weight:600;min-height:44px;text-align:center;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
 .btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--line)}
 .btn.danger{background:transparent;color:var(--crit);border:1px solid var(--line)}
 .btn.sm{padding:6px 12px;min-height:36px;font-size:13px;border-radius:10px}
+.btn{box-shadow:0 4px 12px color-mix(in srgb,var(--accent) 26%,transparent);transition:transform .1s}
+.btn.ghost,.btn.danger{box-shadow:none}
+.btn:active,.pill-btn:active,.fab:active{transform:scale(.97)}
 .hint{display:block;color:var(--muted);font-size:12px;margin-top:8px}.hint b{color:var(--ink-2)}
 p.hint{margin:0}
 
@@ -156,7 +169,7 @@ p.hint{margin:0}
 /* stats */
 .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .tiles.two{grid-template-columns:1fr 1fr}
-.tile{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px;min-width:0}
+.tile{background:var(--surface);border:1px solid color-mix(in srgb,var(--line) 70%,transparent);border-radius:16px;padding:12px;min-width:0;box-shadow:var(--shadow)}
 .tile small{color:var(--muted);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
 .tile b{display:block;font-family:var(--display);font-size:clamp(13px,4.1vw,17px);font-variant-numeric:tabular-nums;margin-top:2px;white-space:nowrap}
 .tiles.two .tile b{white-space:normal;font-size:15px}
@@ -225,7 +238,8 @@ table.mini tr:last-child td,table.mini tr:last-child th{border-bottom:0}
 /* formulaires */
 .sheet-wrap{position:fixed;inset:0;background:rgba(6,20,18,.5);display:flex;align-items:flex-end;justify-content:center;z-index:10}
 .sheet-wrap[hidden]{display:none}
-.sheet{background:var(--bg);width:100%;max-width:520px;max-height:92%;overflow-y:auto;border-radius:22px 22px 0 0;padding:16px 16px 22px;display:flex;flex-direction:column;gap:12px}
+.sheet{background:var(--bg);width:100%;max-width:520px;max-height:92%;overflow-y:auto;border-radius:26px 26px 0 0;padding:10px 18px calc(22px + env(safe-area-inset-bottom));box-shadow:0 -10px 30px rgba(0,0,0,.18);display:flex;flex-direction:column;gap:12px}
+.sheet::before{content:"";display:block;width:40px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 2px;flex:none}
 .sheet h2{font-family:var(--display);font-size:19px;margin:0;display:flex;justify-content:space-between;align-items:center;gap:8px}
 .sheet h2:focus:not(:focus-visible){outline:none}
 .sheet h2 button{font-size:22px;color:var(--muted);width:40px;height:40px;flex:none}
@@ -245,8 +259,18 @@ fieldset > legend,.f > span{font-size:12px;font-weight:600;color:var(--ink-2);pa
 .actions .btn{flex:1}
 .imp-prev{font-size:13px;display:flex;flex-direction:column;gap:6px}
 .imp-prev li{display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid var(--line);padding-bottom:4px}
-.toast{position:fixed;left:50%;bottom:132px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:13px;font-weight:500;z-index:20;max-width:calc(100% - 32px);text-align:center}
+.toast{position:fixed;left:50%;bottom:calc(164px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:13px;font-weight:500;z-index:20;max-width:calc(100% - 32px);text-align:center}
 .toast[hidden]{display:none}
+.toast:not([hidden]){display:flex;align-items:center;gap:12px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.toast button{background:rgba(255,255,255,.18);color:inherit;font-weight:700;padding:7px 12px;border-radius:9px;flex:none}
+/* balayer pour supprimer */
+li.sw{position:relative;overflow:hidden;border-radius:12px}
+.filters.scroll{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:2px 16px}.filters.scroll::-webkit-scrollbar{display:none}.filters.scroll > *{flex:none}
+.sw-bg{position:absolute;inset:3px 0;border-radius:12px;background:var(--crit);color:#fff;display:flex;align-items:center;justify-content:flex-end;padding-right:16px;font-weight:700;font-size:14px;opacity:0;transition:background .15s}
+li.sw.swiping .sw-bg{opacity:1}
+li.sw.armed .sw-bg{background:color-mix(in srgb,var(--crit) 80%,#000)}
+li.sw > .row{position:relative;background:var(--surface);touch-action:pan-y}
+li.sw.swiping > .row{border-radius:12px}
 @media (prefers-reduced-motion:no-preference){
   .sheet{animation:up .22s ease-out}
   @keyframes up{from{transform:translateY(28px)}to{transform:none}}
@@ -258,11 +282,11 @@ fieldset > legend,.f > span{font-size:12px;font-weight:600;color:var(--ink-2);pa
 <body>
 <div id="app">
   <button type="button" class="skip" data-act="skip">Aller au contenu</button>
-  <header class="top"><div class="brand"><svg class="logo" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#1D5FA6"/><rect x="92" y="150" width="328" height="236" rx="40" fill="#FFFFFF"/><rect x="92" y="150" width="328" height="64" rx="32" fill="#DCE8F6"/><rect x="92" y="182" width="328" height="32" fill="#DCE8F6"/><rect x="300" y="246" width="140" height="84" rx="26" fill="#1D5FA6"/><circle cx="342" cy="288" r="16" fill="#FFFFFF"/><rect x="128" y="300" width="56" height="14" rx="7" fill="#eda100"/><rect x="128" y="326" width="96" height="14" rx="7" fill="#e34948"/><rect x="128" y="352" width="76" height="14" rx="7" fill="#008300"/></svg><h1 id="title" tabindex="-1">Flousi</h1></div><small id="sync" aria-label="État de la sauvegarde"></small></header>
+  <header class="top"><div class="brand"><svg class="logo" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#1D5FA6"/><rect x="92" y="150" width="328" height="236" rx="40" fill="#FFFFFF"/><rect x="92" y="150" width="328" height="64" rx="32" fill="#DCE8F6"/><rect x="92" y="182" width="328" height="32" fill="#DCE8F6"/><rect x="300" y="246" width="140" height="84" rx="26" fill="#1D5FA6"/><circle cx="342" cy="288" r="16" fill="#FFFFFF"/><rect x="128" y="300" width="56" height="14" rx="7" fill="#eda100"/><rect x="128" y="326" width="96" height="14" rx="7" fill="#e34948"/><rect x="128" y="352" width="76" height="14" rx="7" fill="#008300"/></svg><h1 id="title" tabindex="-1">Flousi</h1></div><div class="top-r"><small id="sync" aria-label="État de la sauvegarde"></small><a href="#reglages" id="gear" class="gear" aria-label="Réglages"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></a></div></header>
   <main id="view" aria-labelledby="title"></main>
   <button class="fab" id="fab" type="button" data-act="new-tx"><span aria-hidden="true">+</span><span class="sr">Ajouter une opération</span></button>
   <nav class="tabs" aria-label="Sections">
-    <a href="#accueil">Accueil</a><a href="#operations">Opérations</a><a href="#prets">Prêts</a><a href="#budgets">Budgets</a><a href="#stats">Stats</a><a href="#comptes">Comptes</a>
+    <a href="#accueil"><span class="ti" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3.5 10.5 12 3.5l8.5 7"/><path d="M5.5 9v11h4.5v-6h4v6h4.5V9"/></svg></span>Accueil</a><a href="#operations"><span class="ti" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 6.5h11M9 12h11M9 17.5h11"/><circle cx="4.5" cy="6.5" r="1.2"/><circle cx="4.5" cy="12" r="1.2"/><circle cx="4.5" cy="17.5" r="1.2"/></svg></span>Opérations</a><a href="#prets"><span class="ti" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 8h15l-3.5-3.5"/><path d="M20 16H5l3.5 3.5"/></svg></span>Prêts</a><a href="#budgets"><span class="ti" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg></span>Budgets</a><a href="#stats"><span class="ti" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 20.5h18"/><rect x="5" y="11" width="3.2" height="6.5" rx="1"/><rect x="10.4" y="5" width="3.2" height="12.5" rx="1"/><rect x="15.8" y="13" width="3.2" height="4.5" rx="1"/></svg></span>Stats</a><a href="#comptes"><span class="ti" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10.5h18M15.5 15h2.5"/></svg></span>Comptes</a>
   </nav>
 </div>
 <div class="sheet-wrap" id="wrap" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title"></div></div>
@@ -592,9 +616,10 @@ const pendingRecs = () => S.meta.recurring.filter(r => r.mode === "manual" && !r
 /* ================= vues ================= */
 let tab = "accueil", month = today().slice(0, 7), cur = "MAD", filter = "all", query = "", loanFilter = "open", catKind = "dep";
 const TITLES = {accueil: "Flousi", operations: "Opérations", recurrentes: "Opérations récurrentes", prets: "Prêts et emprunts", budgets: "Budgets",
-  stats: "Statistiques", comptes: "Comptes et réglages", categories: "Catégories", apparence: "Apparence", donnees: "Sauvegarde et import"};
-const PARENT = {recurrentes: "operations", categories: "comptes", apparence: "comptes", donnees: "comptes"};
-const backLink = to => `<a class="back" href="#${to}"><span aria-hidden="true">‹</span> ${esc(TITLES[to] === "Comptes et réglages" ? "Comptes et réglages" : TITLES[to])}</a>`;
+  stats: "Statistiques", comptes: "Comptes", reglages: "Réglages", devises: "Devises et cours", categories: "Catégories", apparence: "Apparence", donnees: "Sauvegarde et import"};
+const PARENT = {recurrentes: "operations"};
+const IN_SETTINGS = ["reglages", "devises", "categories", "apparence", "donnees"];
+const backLink = to => `<a class="back" href="#${to}"><span aria-hidden="true">‹</span> ${esc(TITLES[to])}</a>`;
 
 function txInfo(t) {
   const a = acc(t.acc), ca = a ? a.cur : base(), an = a ? a.name : "compte supprimé", rec = t.rec ? ", opération récurrente" : "";
@@ -615,7 +640,8 @@ function txInfo(t) {
 }
 function txRow(t, withDate) {
   const i = txInfo(t);
-  return `<li><button type="button" class="row" data-act="edit-tx" data-id="${esc(t.id)}" aria-label="${esc(i.sr + (withDate ? ", le " + longDate(t.date) : "") + ". Modifier")}">${i.chip}<span class="t"><b>${esc(i.title)}${t.rec ? `<span class="rec-mark" aria-hidden="true">↻</span>` : ""}</b><small>${esc(i.sub)}</small></span><span class="amt ${i.cls}">${esc(i.amt)}</span></button></li>`;
+  const swp = t.t !== "pret";
+  return `<li${swp ? ' class="sw"' : ""}>${swp ? '<span class="sw-bg" aria-hidden="true">🗑 Supprimer</span>' : ""}<button type="button" class="row" data-act="edit-tx" data-id="${esc(t.id)}"${swp ? ' aria-keyshortcuts="Delete"' : ""} aria-label="${esc(i.sr + (withDate ? ", le " + longDate(t.date) : "") + ". Modifier")}">${i.chip}<span class="t"><b>${esc(i.title)}${t.rec ? `<span class="rec-mark" aria-hidden="true">↻</span>` : ""}</b><small>${esc(i.sub)}</small></span><span class="amt ${i.cls}">${esc(i.amt)}</span></button></li>`;
 }
 function txByDay(list) {
   const days = {}; list.forEach(t => (days[t.date] = days[t.date] || []).push(t));
@@ -653,7 +679,7 @@ function vAccueil() {
       <div><dt>Total des comptes${list.length > 1 ? ", converti" : ""}</dt><dd>${fmt(totB, base())}</dd></div>
       ${hasLoans ? `<div><dt>On vous doit</dt><dd>${listAmounts(lentM)}</dd></div><div><dt>Vous devez</dt><dd>${listAmounts(borM)}</dd></div>` : ""}
       <div class="strong"><dt>Patrimoine net${hasLoans ? ", prêts compris" : ""}</dt><dd>${fmt(net, base())}</dd></div></dl>
-      ${list.length > 1 ? `<small class="hint">Conversion au cours saisi le ${dm(S.meta.ratesDate)}. <a class="link" href="#comptes">Modifier les cours</a></small>` : ""}</div>` : "";
+      ${list.length > 1 ? `<small class="hint">Conversion au cours saisi le ${dm(S.meta.ratesDate)}. <a class="link" href="#devises">Modifier les cours</a></small>` : ""}</div>` : "";
   const al = S.meta.budgets.map(b => ({b, s: budgetState(b, nowYm)})).filter(x => x.s.r >= .8);
   const recent = allTx().sort((a, b) => b.date.localeCompare(a.date)).slice(0, 6);
   return banner() + pendingBlock(3) + `<section class="ledger ${list.length === 1 ? "one" : ""}" aria-label="Soldes par devise">${list.map(colH).join("")}</section>` + overview +
@@ -670,10 +696,11 @@ function vOperations() {
   const list = opsList(), q = query.trim(), nr = S.meta.recurring.length, np = pendingRecs().length;
   const F = [["all", "Tout"], ["dep", "Dépenses"], ["rev", "Revenus"], ["vir", "Virements"], ["pret", "Prêts"]];
   return `<div class="bar-line">${monthSwitch()}<a class="pill-btn" href="#recurrentes" aria-label="${esc("Opérations récurrentes : " + nr + (np ? ", dont " + np + " à valider" : ""))}"><span aria-hidden="true">↻</span> Récurrentes${np ? ` (${np} à valider)` : nr ? ` (${nr})` : ""}</a></div>
-    <div class="filters" role="group" aria-label="Type d'opération">${F.map(([k, l]) => `<button type="button" class="pill-btn" data-act="filter" data-f="${k}" aria-pressed="${filter === k}">${l}</button>`).join("")}</div>
+    <div class="filters scroll" role="group" aria-label="Type d'opération">${F.map(([k, l]) => `<button type="button" class="pill-btn" data-act="filter" data-f="${k}" aria-pressed="${filter === k}">${l}</button>`).join("")}</div>
     <label class="f"><span class="sr">Rechercher une opération</span><input type="search" id="q" placeholder="Rechercher" value="${esc(query)}"></label>
     <h2 class="sr">${plur(list.length, "opération", "opérations")} en ${monthName(month)}</h2>
-    <div class="card" id="tx-list">${list.length ? txByDay(list) : `<p class="empty">Aucune opération pour ${monthName(month)}${q || filter !== "all" ? " avec ces filtres" : ""}.</p>`}</div>`;
+    <div class="card" id="tx-list">${list.length ? txByDay(list) : `<p class="empty">Aucune opération pour ${monthName(month)}${q || filter !== "all" ? " avec ces filtres" : ""}.</p>`}</div>
+    ${list.length ? `<p class="hint" style="text-align:center">Astuce : balayez une opération vers la gauche pour la supprimer (touche Suppr au clavier).</p>` : ""}`;
 }
 
 function vRecurrentes() {
@@ -848,22 +875,28 @@ function vStats() {
 
 /* ---------- comptes et réglages ---------- */
 function vComptes() {
-  const b = base(), nc = S.meta.categories.length, nr = S.meta.recurring.length;
-  return banner() + `<h2 class="sec-h">Comptes</h2>
+  return banner() + `<h2 class="sr">Mes comptes</h2>
     <ul class="card rows">${S.meta.accounts.map(a => `<li><button type="button" class="row" data-act="edit-acc" data-id="${esc(a.id)}" aria-label="${esc(a.name + ", solde " + say(balance(a), a.cur) + ", solde de départ " + say(a.initial, a.cur) + ". Modifier")}">${accChip(a)}<span class="t"><b>${esc(a.name)}</b><small>Solde de départ ${fmt(a.initial, a.cur)}</small></span><span class="amt">${fmt(balance(a), a.cur)}</span></button></li>`).join("")}</ul>
     <button type="button" class="btn ghost" data-act="new-acc">Ajouter un compte</button>
-    <h2 class="sec-h">Devises et cours</h2>
-    <p class="hint">Devise de référence : ${esc(curOf(b).name)}. Les cours servent à convertir les totaux et à proposer le montant reçu lors d'un virement entre devises. Cours saisis le ${dm(S.meta.ratesDate)}.</p>
+    <p class="hint">Devises, catégories, apparence et sauvegarde se règlent avec la roue dentée en haut à droite. <a class="link" href="#reglages">Ouvrir les réglages</a></p>`;
+}
+function vReglages() {
+  const nc = S.meta.categories.length, nr = S.meta.recurring.length, ncur = S.meta.currencies.length;
+  const item = (h, e, t, d) => `<li><a href="#${h}"><span class="chip emo" aria-hidden="true">${e}</span><span><b>${t}</b><small>${d}</small></span><span class="chev" aria-hidden="true">›</span></a></li>`;
+  return `<ul class="card plain menu">
+    ${item("devises", "💱", "Devises et cours", `${plur(ncur, "devise", "devises")}, référence : ${esc(curOf(base()).name)}`)}
+    ${item("categories", "🏷️", "Catégories", `${plur(nc, "catégorie", "catégories")}, sous-catégories, icônes et couleurs`)}
+    ${item("recurrentes", "🔁", "Opérations récurrentes", plur(nr, "récurrence", "récurrences"))}
+    ${item("apparence", "🎨", "Apparence", `Thème ${P.mode === "auto" ? "automatique" : P.mode === "dark" ? "sombre" : "clair"}, couleurs ${esc((THEMES[P.accent] || THEMES.sapin).name)}`)}
+    ${item("donnees", "💾", "Sauvegarde et import", "Fichier de sauvegarde, import et export CSV")}
+  </ul>`;
+}
+function vDevises() {
+  const b = base();
+  return backLink("reglages") + `<p class="hint">Devise de référence : ${esc(curOf(b).name)}. Les cours servent à convertir les totaux et à proposer le montant reçu lors d'un virement entre devises. Cours saisis le ${dm(S.meta.ratesDate)}.</p>
     <ul class="card rows">${S.meta.currencies.map(c => { const isB = c.code === b, rt = "1 " + c.sym + " = " + NF4.format(c.rate) + " " + sym(b);
       return `<li><button type="button" class="row" data-act="edit-cur" data-c="${esc(c.code)}" aria-label="${esc(c.name + ", " + (isB ? "devise de référence" : "1 " + c.name + " vaut " + NF4.format(c.rate) + " " + plural(b)) + ". Modifier")}"><span class="chip" aria-hidden="true">${esc(c.sym)}</span><span class="t"><b>${esc(c.name)}</b><small>${esc(c.code)}${isB ? " · devise de référence" : ""}</small></span><span class="amt">${isB ? "Référence" : esc(rt)}</span></button></li>`; }).join("")}</ul>
-    <button type="button" class="btn ghost" data-act="new-cur">Ajouter une devise</button>
-    <h2 class="sec-h">Réglages</h2>
-    <ul class="card plain menu">
-      <li><a href="#categories"><span class="chip emo" aria-hidden="true">🏷️</span><span><b>Catégories</b><small>${plur(nc, "catégorie", "catégories")}, sous-catégories, icônes et couleurs</small></span><span class="chev" aria-hidden="true">›</span></a></li>
-      <li><a href="#recurrentes"><span class="chip emo" aria-hidden="true">🔁</span><span><b>Opérations récurrentes</b><small>${plur(nr, "récurrence", "récurrences")}</small></span><span class="chev" aria-hidden="true">›</span></a></li>
-      <li><a href="#apparence"><span class="chip emo" aria-hidden="true">🎨</span><span><b>Apparence</b><small>Thème ${P.mode === "auto" ? "automatique" : P.mode === "dark" ? "sombre" : "clair"}, couleurs ${esc((THEMES[P.accent] || THEMES.sapin).name)}</small></span><span class="chev" aria-hidden="true">›</span></a></li>
-      <li><a href="#donnees"><span class="chip emo" aria-hidden="true">💾</span><span><b>Sauvegarde et import</b><small>Fichier de sauvegarde, import et export CSV</small></span><span class="chev" aria-hidden="true">›</span></a></li>
-    </ul>`;
+    <button type="button" class="btn ghost" data-act="new-cur">Ajouter une devise</button>`;
 }
 function vCategories() {
   const counts = {}; allTx().forEach(t => { if (t.cat) counts[t.cat] = (counts[t.cat] || 0) + 1; });
@@ -871,14 +904,14 @@ function vCategories() {
     const info = [k ? plur(k, "sous-catégorie", "sous-catégories") : "", plur(n, "opération", "opérations")].filter(Boolean).join(" · ");
     return `<button type="button" class="row" data-act="edit-cat" data-id="${esc(c.id)}" aria-label="${esc((sub ? "Sous-catégorie " : "") + c.name + ", " + info + ". Modifier")}">${chipHtml(c)}<span class="t"><b>${esc(c.name)}</b><small>${esc(info)}</small></span><span class="chev" aria-hidden="true">›</span></button>`; };
   const tops = cats(catKind).filter(c => !c.parent);
-  return backLink("comptes") + `<div class="seg wide" role="group" aria-label="Type de catégorie"><button type="button" data-act="catkind" data-v="dep" aria-pressed="${catKind === "dep"}">Dépenses</button><button type="button" data-act="catkind" data-v="rev" aria-pressed="${catKind === "rev"}">Revenus</button></div>
+  return backLink("reglages") + `<div class="seg wide" role="group" aria-label="Type de catégorie"><button type="button" data-act="catkind" data-v="dep" aria-pressed="${catKind === "dep"}">Dépenses</button><button type="button" data-act="catkind" data-v="rev" aria-pressed="${catKind === "rev"}">Revenus</button></div>
     <ul class="card rows cats">${tops.length ? tops.map(c => { const ks = kids(c.id); return `<li>${row(c)}${ks.length ? `<ul class="sub" aria-label="${esc("Sous-catégories de " + c.name)}">${ks.map(k => `<li>${row(k, true)}</li>`).join("")}</ul>` : ""}</li>`; }).join("") : `<li class="empty">Aucune catégorie.</li>`}</ul>
     <button type="button" class="btn" data-act="new-cat" data-k="${catKind}">Nouvelle catégorie ${catKind === "dep" ? "de dépense" : "de revenu"}</button>
     <p class="hint">Ouvrez une catégorie pour changer son icône, son image ou sa couleur, lui ajouter des sous-catégories, ou la fusionner avec une autre en la supprimant.</p>`;
 }
 function vApparence() {
   const radio = (name, v, label, cur) => `<label><input type="radio" name="${name}" id="${name}-${v}" value="${v}" ${cur === v ? "checked" : ""}><span>${label}</span></label>`;
-  return backLink("comptes") + `<form class="card" style="display:flex;flex-direction:column;gap:16px" onsubmit="return false">
+  return backLink("reglages") + `<form class="card" style="display:flex;flex-direction:column;gap:16px" onsubmit="return false">
     <fieldset><legend>Thème</legend><div class="seg wide">${radio("pmode", "auto", "Automatique", P.mode)}${radio("pmode", "light", "Clair", P.mode)}${radio("pmode", "dark", "Sombre", P.mode)}</div>
       <small class="hint">Automatique suit le réglage de votre téléphone ou de l'application Claude.</small></fieldset>
     <fieldset><legend>Couleurs</legend><div class="swatches">${Object.entries(THEMES).map(([k, t]) => `<label><input type="radio" name="paccent" id="paccent-${k}" value="${k}" ${P.accent === k ? "checked" : ""}><span class="dot" style="--c:${t.l[0]}" aria-hidden="true"></span><span>${t.name}</span></label>`).join("")}</div></fieldset>
@@ -888,7 +921,7 @@ function vApparence() {
 }
 function vDonnees() {
   const where = demo ? "Mode exemple : rien n'est enregistré." : syncState === "cloud" ? "Vos données sont enregistrées sur cet appareil et dans votre compte Claude, en privé ; elles vous suivent sur vos appareils." : syncState === "error" ? "La dernière sauvegarde en ligne a échoué. Vos données restent sur cet appareil ; elles seront renvoyées à la prochaine modification." : syncState === "toolarge" ? "Vos données sont trop volumineuses pour la sauvegarde en ligne, souvent à cause des images de catégories. Elles restent sur cet appareil." : "Vos données sont enregistrées sur cet appareil uniquement.";
-  return backLink("comptes") + `<div class="card"><p style="margin:0;font-size:14px;color:var(--ink-2)">${where}</p></div>
+  return backLink("reglages") + `<div class="card"><p style="margin:0;font-size:14px;color:var(--ink-2)">${where}</p></div>
     <h2 class="sec-h">Sauvegarde sur l'appareil</h2>
     <div class="card" style="display:flex;flex-direction:column;gap:10px">
       <p class="hint">Un fichier de sauvegarde contient tout : comptes, opérations, catégories, budgets, prêts et récurrences. Gardez-le en lieu sûr pour restaurer vos données sur un autre appareil ou après une erreur.</p>
@@ -913,10 +946,11 @@ function focusKey(el) {
   for (const k of ["id", "n", "c", "v", "p", "f", "m", "mv", "k", "z"]) { const v = el.dataset[k]; if (v != null) s += `[data-${k}="${CSS.escape(v)}"]`; }
   return s;
 }
-const VIEWS = {accueil: vAccueil, operations: vOperations, recurrentes: vRecurrentes, prets: vPrets, budgets: vBudgets, stats: vStats, comptes: vComptes, categories: vCategories, apparence: vApparence, donnees: vDonnees};
+const VIEWS = {accueil: vAccueil, operations: vOperations, recurrentes: vRecurrentes, prets: vPrets, budgets: vBudgets, stats: vStats, comptes: vComptes, reglages: vReglages, devises: vDevises, categories: vCategories, apparence: vApparence, donnees: vDonnees};
 function render() {
   const navTab = PARENT[tab] || tab;
   document.querySelectorAll("nav.tabs a").forEach(a => a.getAttribute("href") === "#" + navTab ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
+  IN_SETTINGS.includes(tab) ? $("#gear").setAttribute("aria-current", "page") : $("#gear").removeAttribute("aria-current");
   $("#title").textContent = TITLES[tab];
   document.title = (tab === "accueil" ? "" : TITLES[tab] + " – ") + "Flousi";
   const v = $("#view");
@@ -937,7 +971,15 @@ function route() {
 
 /* ================= annonces ================= */
 let liveT; function announce(m) { const l = $("#live"); l.textContent = ""; clearTimeout(liveT); liveT = setTimeout(() => l.textContent = m, 80); }
-let toastT; function toast(m) { const t = $("#toast"); t.textContent = m; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 3800); announce(m); }
+let toastT, undoFn = null;
+function toast(m) { const t = $("#toast"); t.textContent = m; t.setAttribute("aria-hidden", "true"); t.hidden = false; undoFn = null; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 3800); announce(m); }
+function toastUndo(m, fn) {
+  const t = $("#toast"); t.innerHTML = `<span>${esc(m)}</span><button type="button" id="toast-undo">Annuler</button>`; t.removeAttribute("aria-hidden"); t.hidden = false; undoFn = fn;
+  $("#toast-undo").onclick = runUndo;
+  clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; t.setAttribute("aria-hidden", "true"); undoFn = null; }, 7000);
+  announce(m + ". Pour annuler : bouton Annuler de la notification, ou Contrôle Z.");
+}
+function runUndo() { const f = undoFn; undoFn = null; clearTimeout(toastT); $("#toast").hidden = true; if (f) f(); }
 
 /* ================= fenêtres de saisie ================= */
 let onSubmit = null, draft = null, opener = null, moveCtx = null, catDraft = null, impCtx = null;
@@ -1283,7 +1325,7 @@ function openPeriod() {
 function openStatAccs() {
   const F = statF(), uc = usedCurs();
   openSheet(head("Comptes inclus dans les statistiques") + `<div class="filters" role="group" aria-label="Sélections rapides"><button type="button" class="pill-btn" data-act="sa-pick" data-c="ALL">Tous les comptes</button>${uc.length > 1 ? uc.map(c => `<button type="button" class="pill-btn" data-act="sa-pick" data-c="${esc(c)}">Seulement en ${esc(plural(c))}</button>`).join("") : ""}</div>
-    <form novalidate><fieldset><legend>Cochez un ou plusieurs comptes</legend>${S.meta.accounts.map(a => `<label class="check"><input type="checkbox" name="sa" value="${esc(a.id)}" ${F.ids.includes(a.id) ? "checked" : ""}><span class="chip acc" style="--ac:${esc(a.color)};width:28px;height:28px;font-size:12px;border-radius:8px" aria-hidden="true">${esc(sym(a.cur))}<i style="left:6px;right:6px;bottom:4px;height:3px"></i></span><span>${esc(a.name)}</span></label>`).join("")}</fieldset>
+    <form novalidate><fieldset><legend>Cochez un ou plusieurs comptes</legend>${S.meta.accounts.map(a => `<label class="check"><input type="checkbox" name="sa" value="${esc(a.id)}" ${F.ids.includes(a.id) ? "checked" : ""}><span class="chip acc" style="--ac:${esc(a.color)};width:28px;height:28px;font-size:12px;border-radius:8px" aria-hidden="true">${esc(sym(a.cur))}<i style="left:4px;top:5px;bottom:5px;width:3px"></i></span><span>${esc(a.name)}</span></label>`).join("")}</fieldset>
     ${uc.length > 1 ? `<p class="hint">Si vous mélangez des devises, les montants sont convertis en ${esc(plural(base()))}.</p>` : ""}
     <div class="err" id="f-err" role="alert"></div><div class="actions"><button type="submit" class="btn">Appliquer</button></div></form>`, () => {
     const ids = [...document.querySelectorAll('input[name="sa"]:checked')].map(x => x.value);
@@ -1642,6 +1684,51 @@ document.addEventListener("input", e => {
 document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("#wrap").hidden) closeSheet(); });
 document.addEventListener("visibilitychange", () => { if (!document.hidden && S && lastAuto !== today()) { if (runAuto()) render(); } });
 window.addEventListener("hashchange", () => { closeSheet(); route(); });
+
+/* ================= balayer pour supprimer ================= */
+function deleteTxUndo(id, focusId) {
+  const t = allTx().find(x => x.id === id); if (!t || t.t === "pret") return;
+  const m = removeTx(id); if (m) touch("tx-" + m); render();
+  const f = focusId && $("#view").querySelector(`[data-act="edit-tx"][data-id="${CSS.escape(focusId)}"]`); if (f) f.focus();
+  toastUndo("Opération supprimée : " + (txInfo(t).title), () => {
+    touch(...putTx(t)); render(); announce("Suppression annulée");
+    const r = $("#view").querySelector(`[data-act="edit-tx"][data-id="${CSS.escape(t.id)}"]`); if (r) r.focus();
+  });
+}
+let sw = null, swBlock = false;
+document.addEventListener("pointerdown", e => {
+  const row = e.target.closest && e.target.closest("#view li.sw > .row");
+  if (!row || e.button > 0 || !$("#wrap").hidden) return;
+  sw = {row, li: row.parentElement, x: e.clientX, y: e.clientY, dx: 0, on: false, pid: e.pointerId};
+});
+document.addEventListener("pointermove", e => {
+  if (!sw || e.pointerId !== sw.pid) return;
+  const dx = e.clientX - sw.x, dy = e.clientY - sw.y;
+  if (!sw.on) {
+    if (Math.abs(dy) > 12 && Math.abs(dy) > Math.abs(dx)) { sw = null; return; }
+    if (dx < -12 && Math.abs(dx) > Math.abs(dy) * 1.2) { sw.on = true; sw.li.classList.add("swiping"); try { sw.row.setPointerCapture(e.pointerId); } catch (x) {} }
+    else return;
+  }
+  sw.dx = Math.min(0, dx); sw.row.style.transform = `translateX(${sw.dx}px)`;
+  sw.li.classList.toggle("armed", sw.dx < -sw.row.offsetWidth * .35);
+});
+function swEnd(e) {
+  if (!sw || e.pointerId !== sw.pid) return;
+  const s = sw; sw = null; if (!s.on) return;
+  swBlock = true; setTimeout(() => swBlock = false, 60);
+  s.row.style.transition = "transform .18s ease-out";
+  if (s.dx < -s.row.offsetWidth * .35) { s.row.style.transform = "translateX(-110%)"; setTimeout(() => deleteTxUndo(s.row.dataset.id), 170); }
+  else { s.row.style.transform = ""; setTimeout(() => { s.row.style.transition = ""; s.li.classList.remove("swiping", "armed"); }, 200); }
+}
+document.addEventListener("pointerup", swEnd); document.addEventListener("pointercancel", swEnd);
+document.addEventListener("click", e => { if (swBlock) { e.stopPropagation(); e.preventDefault(); } }, true);
+document.addEventListener("keydown", e => {
+  if (e.key === "Delete" && $("#wrap").hidden) {
+    const r = e.target.closest && e.target.closest("#view li.sw > .row");
+    if (r) { e.preventDefault(); const all = [...$("#view").querySelectorAll("li.sw > .row")], i = all.indexOf(r), n = all[i + 1] || all[i - 1]; deleteTxUndo(r.dataset.id, n && n.dataset.id); }
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z" && undoFn && !/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)) { e.preventDefault(); runUndo(); }
+});
 
 /* ================= démarrage ================= */
 const local = localLoad();
