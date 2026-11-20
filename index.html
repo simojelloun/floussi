@@ -93,7 +93,7 @@ nav.tabs a[aria-current] .ti{background:color-mix(in srgb,var(--accent) 16%,tran
 .card{background:var(--surface);border:1px solid color-mix(in srgb,var(--line) 70%,transparent);border-radius:18px;padding:14px 16px;box-shadow:var(--shadow)}
 .sec-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:0 2px -6px}
 .sec-h h2,h2.sec-h{font-family:var(--display);font-size:17px;font-weight:700;margin:0;letter-spacing:-.01em}
-h2.sec-h{margin:0 2px -6px}
+h2.sec-h{margin:0 2px -6px;display:block}
 .link{color:var(--accent);font-weight:600;font-size:13px;text-decoration:none}
 ul.rows,ul.pie-leg,ul.plain{list-style:none;margin:0;padding:0}
 ul.rows{display:flex;flex-direction:column}
@@ -105,9 +105,23 @@ ul.card.rows{padding:2px 16px}
 .row .t small{color:var(--muted);font-size:12px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .chip{width:40px;height:40px;border-radius:13px;background:var(--track);color:var(--ink-2);display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:15px;overflow:hidden;flex:none}
 .chip.emo{background:var(--track)}
-/* icônes en noir et blanc, sobres */
-.chip.emo,.icons label > span:first-of-type{filter:grayscale(1) contrast(1.05)}
-:root[data-mode="dark"] .chip.emo,:root[data-theme="dark"]:not([data-mode="light"]) .chip.emo{filter:grayscale(1) brightness(1.15)}
+/* icônes : dessin en noir et blanc sur une pastille teintée de la couleur du thème */
+.chip.emo{background:linear-gradient(145deg,color-mix(in srgb,var(--accent) 22%,var(--surface)),color-mix(in srgb,var(--accent) 8%,var(--surface)));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 20%,transparent);transition:transform .15s}
+.chip.emo .e,.icons label > span:first-of-type{filter:grayscale(1) contrast(1.08)}
+.chip.emo .e{display:block;line-height:1}
+:root[data-mode="dark"] .chip.emo .e,:root[data-theme="dark"]:not([data-mode="light"]) .chip.emo .e{filter:grayscale(1) brightness(1.2)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]):not([data-mode="light"]) .chip.emo .e{filter:grayscale(1) brightness(1.2)}}
+.row:active .chip,.menu a:active .chip,.rank:active .chip{transform:scale(.9)}
+/* rubriques : filet de couleur devant les titres de section */
+.sec-h h2::before,h2.sec-h::before{content:"";display:inline-block;width:4px;height:15px;border-radius:2px;background:linear-gradient(var(--accent),var(--rule));margin-right:9px;vertical-align:-2px}
+h3.day{color:color-mix(in srgb,var(--accent) 60%,var(--muted))}
+.menu a b{font-weight:600}
+/* entrée douce quand on change d'écran */
+@media (prefers-reduced-motion:no-preference){
+  #view.enter > *{animation:rise .34s ease-out both}
+  #view.enter > *:nth-child(2){animation-delay:.04s}#view.enter > *:nth-child(3){animation-delay:.08s}#view.enter > *:nth-child(4){animation-delay:.12s}#view.enter > *:nth-child(n+5){animation-delay:.16s}
+  @keyframes rise{from{opacity:.001;transform:translateY(8px)}to{opacity:1;transform:none}}
+}
 .chip.emo{font-size:19px;font-family:system-ui,"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif}
 .chip img{width:100%;height:100%;object-fit:cover}
 .amt{font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -524,7 +538,7 @@ function chipHtml(c, fallback) {
   if (!c) return `<span class="chip" aria-hidden="true">${esc(fallback || "?")}</span>`;
   const st = `style="--cc:${esc(c.color || "#6b7a86")}"`;
   if (c.icon === "img" && c.img) return `<span class="chip" ${st} aria-hidden="true"><img src="${esc(c.img)}" alt=""></span>`;
-  return `<span class="chip emo" ${st} aria-hidden="true">${esc(c.icon && c.icon !== "img" ? c.icon : c.name[0])}</span>`;
+  return `<span class="chip emo" ${st} aria-hidden="true"><span class="e">${esc(c.icon && c.icon !== "img" ? c.icon : c.name[0])}</span></span>`;
 }
 const accChip = a => `<span class="chip acc" style="--ac:${esc(a.color || "var(--muted)")}" aria-hidden="true">${esc(sym(a.cur))}<i></i></span>`;
 function catOpts(kind, sel) {
@@ -638,7 +652,7 @@ function txInfo(t) {
   if (t.t === "pret") {
     const l = loan(t.loan), p = l ? l.person : "?", lent = l ? l.kind === "lent" : t.dir === "out";
     const title = (t.mv === "base" ? (lent ? "Prêt à " : "Emprunt auprès de ") : (lent ? "Remboursement reçu de " : "Remboursement à ")) + p;
-    return {title, sub: (t.note ? t.note + " · " : "") + an, amt: (t.dir === "in" ? "+" : "−") + fmt(t.amt, ca), cls: t.dir === "in" ? "rev" : "dep", chip: `<span class="chip emo" aria-hidden="true">🤝</span>`,
+    return {title, sub: (t.note ? t.note + " · " : "") + an, amt: (t.dir === "in" ? "+" : "−") + fmt(t.amt, ca), cls: t.dir === "in" ? "rev" : "dep", chip: `<span class="chip emo" aria-hidden="true"><span class="e">🤝</span></span>`,
       sr: `${title}, ${t.dir === "in" ? "entrée" : "sortie"} de ${say(t.amt, ca)}, ${an}${t.note ? ", " + t.note : ""}`};
   }
   const c = cat(t.cat), name = catLabel(t.cat);
@@ -889,7 +903,7 @@ function vComptes() {
 }
 function vReglages() {
   const nc = S.meta.categories.length, nr = S.meta.recurring.length, ncur = S.meta.currencies.length;
-  const item = (h, e, t, d) => `<li><a href="#${h}"><span class="chip emo" aria-hidden="true">${e}</span><span><b>${t}</b><small>${d}</small></span><span class="chev" aria-hidden="true">›</span></a></li>`;
+  const item = (h, e, t, d) => `<li><a href="#${h}"><span class="chip emo" aria-hidden="true"><span class="e">${e}</span></span><span><b>${t}</b><small>${d}</small></span><span class="chev" aria-hidden="true">›</span></a></li>`;
   return `<ul class="card plain menu">
     ${item("devises", "💱", "Devises et cours", `${plur(ncur, "devise", "devises")}, référence : ${esc(curOf(base()).name)}`)}
     ${item("categories", "🏷️", "Catégories", `${plur(nc, "catégorie", "catégories")}, sous-catégories, icônes et couleurs`)}
@@ -970,7 +984,7 @@ function render() {
 let first = true;
 function route() {
   const h = location.hash.slice(1), next = TITLES[h] ? h : "accueil", changed = next !== tab;
-  if (changed) { tab = next; $("#view").scrollTop = 0; }
+  if (changed) { tab = next; const v = $("#view"); v.scrollTop = 0; v.classList.add("enter"); clearTimeout(route.t); route.t = setTimeout(() => v.classList.remove("enter"), 700); }
   render();
   if (changed && !first) $("#title").focus();
   first = false;
