@@ -25,7 +25,7 @@ Flousi tient dans une seule page web, sans serveur ni compte à créer. Les donn
 ## Mettre l'application en ligne avec GitHub Pages
 
 1. Créez un dépôt sur GitHub, par exemple `flousi`.
-2. Déposez-y tous les fichiers de ce dossier, en gardant le dossier `icons/`.
+2. Déposez-y tous les fichiers de ce dossier, à la racine du dépôt.
 3. Dans le dépôt, ouvrez **Settings › Pages**.
 4. Sous **Build and deployment**, choisissez **Deploy from a branch**, puis la branche `main` et le dossier `/ (root)`. Enregistrez.
 5. Après une minute environ, l'appli est disponible à l'adresse `https://<votre-nom>.github.io/flousi/`.
@@ -77,7 +77,11 @@ Après une modification de `index.html`, changez le nom du cache dans `sw.js` (p
 index.html             l'application complète (HTML, CSS et JavaScript)
 manifest.webmanifest   nom, couleurs et icônes pour l'installation
 sw.js                  service worker : fonctionnement hors connexion
-icons/                 icône vectorielle et versions PNG (192, 512, masquable, Apple)
+icon.svg               icône vectorielle
+icon-192.png           icône 192 × 192
+icon-512.png           icône 512 × 512
+maskable-512.png       icône pleine pour Android (formes adaptatives)
+apple-touch-icon.png   icône pour l'écran d'accueil de l'iPhone
 ```
 
 ## Licence

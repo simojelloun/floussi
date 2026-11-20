@@ -1,7 +1,7 @@
 /* Flousi : fonctionnement hors connexion.
    Les fichiers de l'appli sont gardés en cache ; les données restent dans le navigateur (localStorage). */
-const CACHE = "flousi-v5";
-const FILES = ["./", "index.html", "manifest.webmanifest", "icons/icon.svg", "icons/icon-192.png", "icons/icon-512.png", "icons/maskable-512.png", "icons/apple-touch-icon.png"];
+const CACHE = "flousi-v10";
+const FILES = ["./", "index.html", "manifest.webmanifest", "icon.svg", "icon-192.png", "icon-512.png", "maskable-512.png", "apple-touch-icon.png"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
