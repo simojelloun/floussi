@@ -43,6 +43,10 @@ html,body{height:100%;margin:0}
 html.nozoom{touch-action:pan-x pan-y}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.4;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
 button,input,select{font:inherit;color:inherit}
+/* pas de sélection de texte sur les menus, titres et boutons */
+button,a,label,h1,h2,h3,legend,nav,.top,.seg,.filters,.pill-btn,.btn,.chip,.tile small,.period,.switch,.back,.menu,.zbar,.state,.toast,.sheet h2{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+*{-webkit-tap-highlight-color:transparent}
+input,textarea{-webkit-user-select:text;user-select:text}
 button{cursor:pointer;background:none;border:0;padding:0}
 a{color:var(--accent)}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -60,7 +64,7 @@ a{color:var(--accent)}
 .gear svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .gear[aria-current]{color:var(--accent-ink);background:var(--accent);border-color:var(--accent)}
 .brand{display:flex;align-items:center;gap:10px;min-width:0}.brand .logo{width:30px;height:30px;flex:none}
-.chip.acc{position:relative;padding-left:10px;font-size:14px}.chip.acc i{position:absolute;left:5px;top:7px;bottom:7px;width:4px;border-radius:2px;background:var(--ac)}
+.chip.acc{font-size:14px;background:color-mix(in srgb,var(--ac) 18%,var(--surface));color:color-mix(in srgb,var(--ac) 72%,var(--ink));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ac) 28%,transparent)}.chip.acc i{display:none}
 main{flex:1;overflow-y:auto;padding:4px 16px 108px;display:flex;flex-direction:column;gap:16px}
 main > *{flex-shrink:0}
 nav.tabs{display:grid;grid-template-columns:repeat(6,1fr);background:var(--surface);border-top:1px solid var(--line);padding:6px 2px calc(8px + env(safe-area-inset-bottom));box-shadow:0 -4px 18px rgba(16,32,48,.06)}
