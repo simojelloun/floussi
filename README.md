@@ -18,8 +18,9 @@ Flousi tient dans une seule page web, sans serveur ni compte à créer. Les donn
 - **Import CSV** (relevés bancaires, Excel), avec correspondance des colonnes et détection des doublons.
 - **Export CSV** pour Excel.
 - **Sauvegarde et restauration** complètes dans un fichier `.json`.
-- **Apparence** : thème clair, sombre ou automatique, six jeux de couleurs.
-- **Accessibilité** : la navigation est pensée pour les lecteurs d'écran (NVDA, TalkBack, VoiceOver). L'appli est structurée en titres et en listes, chaque élément porte une description parlée, les annonces sont vocales, les fenêtres retiennent le focus et chaque graphique a un équivalent textuel.
+- **Trois langues** : français, anglais et arabe, avec mise en page de droite à gauche pour l'arabe (Réglages › Apparence › Langue).
+- **Apparence** : thème clair, sombre ou automatique, style classique ou verre liquide, six jeux de couleurs.
+- **Accessibilité** : la navigation est pensée pour les lecteurs d'écran (NVDA, TalkBack, VoiceOver). Les gestes (balayer, glisser) ont tous une alternative par bouton. L'appli est structurée en titres et en listes, chaque élément porte une description parlée, les annonces sont vocales, les fenêtres retiennent le focus et chaque graphique a un équivalent textuel.
 - **Hors connexion** : une fois ouverte, l'appli fonctionne sans réseau et s'installe sur l'écran d'accueil.
 
 ## Mettre l'application en ligne avec GitHub Pages
@@ -47,6 +48,8 @@ git push -u origin main
 - **iPhone (Safari)** : ouvrez l'adresse, puis bouton Partager › **Sur l'écran d'accueil**.
 
 L'appli s'ouvre alors en plein écran, avec son icône, comme une application classique.
+
+Sur iPhone, ajoutez l'appli depuis l'adresse GitHub Pages dans Safari, et non depuis un autre lien : l'icône est intégrée à la page. Si une ancienne icône reste affichée, supprimez le signet, effacez l'historique de Safari (Réglages › Safari) puis ajoutez-le à nouveau.
 
 ## Où sont mes données ?
 
