@@ -884,11 +884,11 @@ function vAccueil() {
   const recent = allTx().sort((a, b) => b.date.localeCompare(a.date)).slice(0, 6);
   const fold = (key, title, extra, body, defOpen) => { const o = P.fold && key in P.fold ? P.fold[key] : defOpen; return `<details class="fold" data-fold="${key}" ${o ? "open" : ""}><summary><span class="ft">${title}</span>${extra ? `<span class="fx">${extra}</span>` : ""}<span class="chev" aria-hidden="true">›</span></summary><div class="fold-b">${body}</div></details>`; };
   const overviewBody = overview ? overview.slice(overview.indexOf('<div class="card">')) : "";
-  return banner() + dailyBlock() + pendingBlock(3) + `<section class="ledger ${list.length === 1 ? "one" : ""}" aria-label="${L("Soldes par devise")}">${list.map(colH).join("")}</section>` + fcBlock() +
+  return banner() + dailyBlock() + (overviewBody ? fold("overview", L("Vue d'ensemble en ") + esc(plural(base())), `<span class="num">${fmt(net, base())}</span>`, overviewBody, false) : "") + pendingBlock(3) + `<section class="ledger ${list.length === 1 ? "one" : ""}" aria-label="${L("Soldes par devise")}">${list.map(colH).join("")}</section>` +
     `<div class="sec-h"><h2>${L("Dernières opérations")}</h2><a class="link" href="#operations">${L("Toutes les opérations")}</a></div><div class="card">${recent.length ? `<ul class="rows">${recent.slice(0, 5).map(t => txRow(t, true)).join("")}</ul>` : `<p class="empty">${L("Aucune opération. Utilisez le bouton Ajouter une opération pour saisir la première.")}</p>`}</div>` +
     (al.length ? fold("budgets", L("Budgets à surveiller"), `<span class="state ${al.some(x => x.s.cls === "crit") ? "crit" : "warn"}">${al.length}</span>`, `<ul class="card rows">${al.map(x => `<li class="alert"><span>${esc(catLabel(x.b.cat))} <small class="num" style="color:var(--muted)">${fmt(x.s.spent, x.b.cur)}${L(" sur ")}${fmt(x.b.limit, x.b.cur)}</small></span><span class="state ${x.s.cls}">${x.s.label}</span></li>`).join("")}</ul><a class="link" href="#budgets">${L("Voir les budgets")}</a>`, false) : "") +
     fold("accounts", L("Comptes"), plur(S.meta.accounts.length, L("compte"), L("comptes")), `<ul class="card rows">${S.meta.accounts.map(a => `<li class="row">${accChip(a)}<span class="t"><b>${esc(a.name)}</b></span><span class="amt">${fmt(balance(a), a.cur)}</span></li>`).join("")}</ul><a class="link" href="#comptes">${L("Gérer les comptes")}</a>`, false) +
-    (overviewBody ? fold("overview", L("Vue d'ensemble en ") + esc(plural(base())), `<span class="num">${fmt(net, base())}</span>`, overviewBody, false) : "");
+    fcBlock();
 }
 
 let dayFilter = "";
