@@ -39,5 +39,43 @@
       "purpose": "any"
     }
   ],
-  "id": "./"
+  "id": "./",
+  "shortcuts": [
+    {
+      "name": "Nouvelle dépense",
+      "short_name": "Dépense",
+      "url": "./?action=dep",
+      "icons": [
+        {
+          "src": "raccourci-depense.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Nouveau revenu",
+      "short_name": "Revenu",
+      "url": "./?action=rev",
+      "icons": [
+        {
+          "src": "raccourci-revenu.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Statistiques",
+      "short_name": "Stats",
+      "url": "./#stats",
+      "icons": [
+        {
+          "src": "raccourci-stats.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
 }
