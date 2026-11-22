@@ -1,10 +1,10 @@
-# Flousi
+# Floussi
 
 Application de comptabilité personnelle, pensée pour le téléphone : dépenses, revenus, budgets, prêts et emprunts, en dirhams, en euros ou dans toute autre devise.
 
-« Flousi » vient de *flouss*, l'argent en darija : *mon argent*.
+« Floussi » vient de *flouss*, l'argent en darija : *mon argent*.
 
-Flousi tient dans une seule page web, sans serveur ni compte à créer. Les données restent dans le navigateur de l'appareil.
+Floussi tient dans une seule page web, sans serveur ni compte à créer. Les données restent dans le navigateur de l'appareil.
 
 ## Fonctionnalités
 
@@ -36,13 +36,13 @@ En ligne de commande :
 ```bash
 git init
 git add .
-git commit -m "Première version de Flousi"
+git commit -m "Première version de Floussi"
 git branch -M main
 git remote add origin https://github.com/<votre-nom>/flousi.git
 git push -u origin main
 ```
 
-## Installer Flousi sur un téléphone
+## Installer Floussi sur un téléphone
 
 - **Android (Chrome)** : ouvrez l'adresse de l'appli, puis menu ⋮ › **Installer l'application** (ou **Ajouter à l'écran d'accueil**).
 - **iPhone (Safari)** : ouvrez l'adresse, puis bouton Partager › **Sur l'écran d'accueil**.
@@ -56,7 +56,7 @@ Sur iPhone, ajoutez l'appli depuis l'adresse GitHub Pages dans Safari, et non de
 Les données sont enregistrées **dans le navigateur de l'appareil** (`localStorage`). Elles ne sont envoyées nulle part. En conséquence :
 
 - deux appareils n'ont pas les mêmes données. Pour passer de l'un à l'autre, utilisez **Comptes › Sauvegarde et import › Enregistrer une sauvegarde**, puis **Restaurer** sur l'autre appareil ;
-- effacer les données du navigateur efface aussi celles de Flousi. **Faites des sauvegardes régulières.**
+- effacer les données du navigateur efface aussi celles de Floussi. **Faites des sauvegardes régulières.**
 
 Au premier lancement, l'appli affiche des données d'exemple. Touchez **Commencer avec mes comptes** pour repartir à zéro.
 
