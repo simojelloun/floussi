@@ -20,6 +20,7 @@ function migrate(m) {
   if (!Array.isArray(m.loans)) m.loans = [];
   if (!Array.isArray(m.recurring)) m.recurring = [];
   if (!Array.isArray(m.templates)) m.templates = [];
+  if (!m.zakat || typeof m.zakat !== "object") m.zakat = {};
   if (!m.ratesDate) m.ratesDate = today();
   m.accounts.forEach((a, i) => { if (!a.color) a.color = COLORS[(i * 3) % COLORS.length][0]; });
   m.categories.forEach((c, i) => {

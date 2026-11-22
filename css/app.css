@@ -661,3 +661,21 @@ svg{direction:ltr}
 .pill-btn{min-height:40px}.seg button{min-height:40px}.switch button{width:44px;height:44px}.sheet h2 button{width:44px;height:44px}.zbar button{height:38px;min-width:40px}
 .btn[disabled]{opacity:.45;cursor:default;box-shadow:none}
 .actions.vert{flex-direction:column}
+
+/* zakat */
+.zk{display:flex;flex-direction:column;gap:12px}
+.zk-res{text-align:center;padding:18px 16px;display:flex;flex-direction:column;gap:6px}
+.zk-res p{margin:0;color:var(--ink-2)}
+.zk-res .zk-lab{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.zk-res .zk-big{font-family:var(--display);font-size:36px;font-weight:700;color:var(--ink)}
+.zk-res.due{background:color-mix(in srgb,var(--accent) 10%,var(--surface));border-color:color-mix(in srgb,var(--accent) 35%,transparent)}
+.zk-res.due .zk-big{color:var(--accent)}
+.zk-res .kv{text-align:start;margin-top:6px}
+.zk .frow .fl.wide{width:auto;flex:1;min-width:0;gap:8px}
+.zk .frow .fl .chip{width:26px;height:26px;font-size:11px;border-radius:8px}
+.zk .frow .unit{color:var(--muted);font-weight:600;min-width:18px}
+.zk .frow input[type=checkbox]{width:22px;height:22px;flex:none;accent-color:var(--accent)}
+.zk .zk-v{color:var(--ink-2);font-size:14px}
+.zk .frow .seg{margin-inline-start:auto}
+.zk-h{margin:-4px 4px 0}
+.zk .frow .fl{width:150px}

@@ -171,10 +171,10 @@ function vModeles() {
 
 let opTag = "", searchAll = true;
 let tab = "accueil", month = today().slice(0, 7), cur = "MAD", filter = "all", query = "", loanFilter = "open", catKind = "dep";
-const TITLES = {accueil: "Floussi", operations: L("Opérations"), recurrentes: L("Opérations récurrentes"), prets: L("Prêts et emprunts"), budgets: L("Budgets"),
+const TITLES = {zakat: L("Zakat"), accueil: "Floussi", operations: L("Opérations"), recurrentes: L("Opérations récurrentes"), prets: L("Prêts et emprunts"), budgets: L("Budgets"),
   stats: L("Statistiques"), verrouillage: L("Verrouillage"), comptes: L("Comptes"), reglages: L("Réglages"), devises: L("Devises et cours"), categories: L("Catégories"), apparence: L("Apparence"), donnees: L("Sauvegarde et import"), bilan: L("Bilan du mois"), modeles: L("Modèles d'opérations")};
 const PARENT = {recurrentes: "operations", bilan: "stats"};
-const IN_SETTINGS = ["reglages", "devises", "categories", "apparence", "donnees", "verrouillage", "modeles"];
+const IN_SETTINGS = ["reglages", "devises", "categories", "apparence", "donnees", "verrouillage", "modeles", "zakat"];
 const backLink = to => `<a class="back" href="#${to}"><span aria-hidden="true">‹</span> ${esc(TITLES[to])}</a>`;
 
 function txInfo(t) {
@@ -693,6 +693,7 @@ function vReglages() {
     ${item("devises", "💱", L("Devises et cours"), `${plur(ncur, L("devise"), L("devises"))}${L(", référence : ")}${esc(L(curOf(base()).name))}`)}
     ${item("categories", "🏷️", L("Catégories"), `${plur(nc, L("catégorie"), L("catégories"))}${L(", sous-catégories, icônes et couleurs")}`)}
     ${item("recurrentes", "🔁", L("Opérations récurrentes"), plur(nr, L("récurrence"), L("récurrences")))}
+    ${item("zakat", "🌙", L("Zakat"), (() => { const r = zakatCalc(ZK()); return r.noPrice ? L("Calculer ma zakat") : r.due ? L("À verser : ") + fmt(r.due, ZK().cur) : L("Pas de zakat due"); })())}
     ${item("modeles", "⚡", L("Modèles d'opérations"), plur(TPL().length, L("modèle"), L("modèles")) + L(" pour la saisie rapide"))}
     ${item("apparence", "🎨", L("Apparence"), `${L("Thème ")}${P.mode === "auto" ? L("automatique") : P.mode === "dark" ? L("sombre") : L("clair")}${L(", couleurs ")}${esc((THEMES[P.accent] || THEMES.sapin).name)}`)}
     ${item("verrouillage", "🔒", L("Verrouillage"), LOCK() ? L("Code activé") + (P.lock.bio ? " · Face ID" : "") : L("Désactivé"))}
