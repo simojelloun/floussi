@@ -1,25 +1,16 @@
 {
-  "name": "floussi-app",
+  "name": "floussi",
   "version": "1.0.0",
   "private": true,
-  "description": "Floussi — version installable (Google Play et App Store) de l'application web Floussi",
+  "description": "Floussi — comptabilité personnelle (application web, sans serveur). Ce fichier ne sert qu'aux tests : l'appli n'a besoin d'aucune installation.",
   "scripts": {
-    "preparer-android": "npx cap add android && node scripts/configurer-natif.mjs && npx capacitor-assets generate --android && npx cap sync android",
-    "preparer-ios": "npx cap add ios && node scripts/configurer-natif.mjs && npx capacitor-assets generate --ios && npx cap sync ios",
-    "mettre-a-jour": "node scripts/configurer-natif.mjs && npx cap sync",
-    "ouvrir-android": "npx cap open android",
-    "ouvrir-ios": "npx cap open ios"
-  },
-  "dependencies": {
-    "@capacitor/android": "^8.6.2",
-    "@capacitor/app": "^8.1.2",
-    "@capacitor/core": "^8.6.2",
-    "@capacitor/filesystem": "^8.1.5",
-    "@capacitor/ios": "^8.6.2",
-    "@capacitor/share": "^8.0.3"
+    "test": "node outils/verifier-ordre.mjs && node outils/verifier-textes.mjs && playwright test",
+    "test:rapide": "node outils/verifier-ordre.mjs && node outils/verifier-textes.mjs",
+    "serveur": "node outils/serveur.mjs"
   },
   "devDependencies": {
-    "@capacitor/assets": "^4.0.0",
-    "@capacitor/cli": "^8.6.2"
+    "@playwright/test": "^1.63.0",
+    "acorn": "^8.19.0",
+    "acorn-walk": "^8.3.4"
   }
 }

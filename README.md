@@ -4,14 +4,17 @@ Application de comptabilité personnelle, pensée pour le téléphone : dépense
 
 « Floussi » vient de *flouss*, l'argent en darija : *mon argent*.
 
-Floussi tient dans une seule page web, sans serveur ni compte à créer. Les données restent dans le navigateur de l'appareil.
+Floussi est une application web sans serveur ni compte à créer : les données restent sur l'appareil. Elle existe aussi en version installable (Google Play, App Store), dans le dossier `mobile/`.
+
+**Pour modifier ou ajouter une fonctionnalité, lisez d'abord [DEVELOPPEMENT.md](DEVELOPPEMENT.md).**
 
 ## Fonctionnalités
 
 - **Opérations** : dépenses, revenus et virements entre comptes, avec recherche et filtres par mois et par type.
 - **Plusieurs comptes et devises** : chaque compte a sa devise et sa couleur. Les cours de change sont modifiables, une devise de référence sert aux totaux, et les virements entre devises sont convertis.
 - **Catégories et sous-catégories** : icônes, images personnelles et couleurs. Supprimer une catégorie utilisée la fusionne avec une autre.
-- **Opérations récurrentes** : loyer, salaire, factures… Chaque échéance est ajoutée automatiquement ou attend votre validation sur l'Accueil.
+- **Opérations récurrentes** : loyer, salaire, factures… Chaque échéance apparaît « À payer » et n'est comptée qu'une fois marquée payée (ou automatiquement pour un prélèvement).
+- **Calendrier** des opérations et des échéances, avec filtre par compte.
 - **Budgets mensuels** par catégorie, avec une alerte à 80 % et en cas de dépassement.
 - **Prêts et emprunts** : montant prêté ou emprunté, remboursements partiels, reste dû et échéance.
 - **Statistiques** : période libre et choix des comptes, catégories en barres ou en camembert, évolution du solde, revenus et dépenses par mois. Les graphiques s'agrandissent en pinçant.
@@ -38,7 +41,7 @@ git init
 git add .
 git commit -m "Première version de Floussi"
 git branch -M main
-git remote add origin https://github.com/<votre-nom>/flousi.git
+git remote add origin https://github.com/<votre-nom>/<votre-depot>.git
 git push -u origin main
 ```
 
@@ -49,7 +52,9 @@ git push -u origin main
 
 L'appli s'ouvre alors en plein écran, avec son icône, comme une application classique.
 
-Sur iPhone, ajoutez l'appli depuis l'adresse GitHub Pages dans Safari, et non depuis un autre lien : l'icône est intégrée à la page. Si une ancienne icône reste affichée, supprimez le signet, effacez l'historique de Safari (Réglages › Safari) puis ajoutez-le à nouveau.
+Sur iPhone, ajoutez l'appli depuis l'adresse GitHub Pages dans Safari, et non depuis un autre lien : l'icône est intégrée à la page.
+
+**Attention :** supprimer l'icône de l'écran d'accueil ou effacer les données de Safari **efface aussi les données de Floussi**. Faites d'abord une sauvegarde (Réglages › Sauvegarde) si vous devez le faire.
 
 ## Où sont mes données ?
 
@@ -60,31 +65,23 @@ Les données sont enregistrées **dans le navigateur de l'appareil** (`localStor
 
 Au premier lancement, l'appli affiche des données d'exemple. Touchez **Commencer avec mes comptes** pour repartir à zéro.
 
-## Tester sur son ordinateur
-
-Le fonctionnement hors connexion demande que la page soit servie par un serveur web, pas ouverte en double-cliquant sur le fichier :
-
-```bash
-python3 -m http.server 8000
-```
-
-Ouvrez ensuite <http://localhost:8000>.
-
 ## Mettre à jour l'appli
 
-Après une modification de `index.html`, changez le nom du cache dans `sw.js` (par exemple `flousi-v1` → `flousi-v2`). Les téléphones où l'appli est installée chargeront ainsi la nouvelle version.
+Avec le fichier `.github/workflows/verifier-et-publier.yml`, chaque envoi sur la branche `main` lance les tests automatiques ; le site n'est mis en ligne que s'ils réussissent (réglage à faire une fois : *Settings › Pages › Source : GitHub Actions*). Les téléphones reçoivent la nouvelle version à la prochaine ouverture avec Internet. Détails dans [DEVELOPPEMENT.md](DEVELOPPEMENT.md).
 
 ## Structure
 
 ```
-index.html             l'application complète (HTML, CSS et JavaScript)
+index.html             squelette de la page et liste des fichiers chargés
+css/                   styles et polices
+js/                    le code, découpé par thème (voir DEVELOPPEMENT.md)
+fonts/                 polices intégrées (licence SIL OFL)
+sw.js                  fonctionnement hors connexion
 manifest.webmanifest   nom, couleurs et icônes pour l'installation
-sw.js                  service worker : fonctionnement hors connexion
-icon.svg               icône vectorielle
-icon-192.png           icône 192 × 192
-icon-512.png           icône 512 × 512
-maskable-512.png       icône pleine pour Android (formes adaptatives)
-apple-touch-icon.png   icône pour l'écran d'accueil de l'iPhone
+confidentialite.html   politique de confidentialité
+*.png, icon.svg        icônes
+tests/, outils/        tests automatiques et vérifications (npm test)
+mobile/                version installable Android / iPhone (voir mobile/NOTICE.md)
 ```
 
 ## Licence

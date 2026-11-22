@@ -1,0 +1,26 @@
+{
+  "name": "floussi-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Floussi — version installable (Google Play et App Store). Le code de l'appli vient du dossier parent (copié dans www/ par « npm run copier-web »).",
+  "scripts": {
+    "preparer-android": "npm run copier-web && npx cap add android && node scripts/configurer-natif.mjs && npx capacitor-assets generate --android && npx cap sync android",
+    "preparer-ios": "npm run copier-web && npx cap add ios && node scripts/configurer-natif.mjs && npx capacitor-assets generate --ios && npx cap sync ios",
+    "mettre-a-jour": "npm run copier-web && node scripts/configurer-natif.mjs && npx cap sync",
+    "ouvrir-android": "npx cap open android",
+    "ouvrir-ios": "npx cap open ios",
+    "copier-web": "node scripts/copier-web.mjs"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.6.2",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/core": "^8.6.2",
+    "@capacitor/filesystem": "^8.1.5",
+    "@capacitor/ios": "^8.6.2",
+    "@capacitor/share": "^8.0.3"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^4.0.0",
+    "@capacitor/cli": "^8.6.2"
+  }
+}
