@@ -1,3 +1,5 @@
+# À chaque envoi sur GitHub : les tests sont lancés. Le site n'est mis en ligne QUE s'ils réussissent.
+# Pour l'activer : Settings › Pages › Build and deployment › Source : « GitHub Actions ».
 name: Vérifier et publier
 
 on:
@@ -42,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps.deploiement.outputs.page_url }}
+      url: ${{ steps.essai1.outputs.page_url || steps.essai2.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - name: Préparer uniquement les fichiers de l'appli
@@ -53,5 +55,17 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
-      - id: deploiement
+          name: site-${{ github.run_attempt }}
+      # GitHub met parfois quelques secondes à « voir » le fichier envoyé : on réessaie une fois.
+      - id: essai1
+        continue-on-error: true
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: site-${{ github.run_attempt }}
+      - if: steps.essai1.outcome == 'failure'
+        run: sleep 30
+      - id: essai2
+        if: steps.essai1.outcome == 'failure'
+        uses: actions/deploy-pages@v4
+        with:
+          artifact_name: site-${{ github.run_attempt }}
