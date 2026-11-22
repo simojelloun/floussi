@@ -1,6 +1,6 @@
 /* Floussi : fonctionnement hors connexion.
    Les fichiers de l'appli sont gardés en cache ; les données restent dans le navigateur (localStorage). */
-const CACHE = "flousi-v30";
+const CACHE = "flousi-v31";
 const FILES = ["./", "index.html", "manifest.webmanifest", "icon.svg", "icon-192.png", "icon-512.png", "maskable-512.png", "apple-touch-icon.png", "apple-touch-icon.png?v=2", "icon-192.png?v=2", "icon-512.png?v=2", "maskable-512.png?v=2", "raccourci-depense.png", "raccourci-revenu.png", "raccourci-stats.png", "confidentialite.html",
   "fonts/bricolage-grotesque.woff2", "fonts/figtree-400.woff2", "fonts/figtree-500.woff2", "fonts/figtree-600.woff2",
   "fonts/plex-arabic-400.woff2", "fonts/plex-arabic-500.woff2", "fonts/plex-arabic-600.woff2", "fonts/plex-arabic-700.woff2"];

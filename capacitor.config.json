@@ -1,0 +1,12 @@
+{
+  "appId": "com.floussi.app",
+  "appName": "Floussi",
+  "webDir": "www",
+  "backgroundColor": "#EEF3F8",
+  "android": {
+    "allowMixedContent": false
+  },
+  "ios": {
+    "contentInset": "never"
+  }
+}
