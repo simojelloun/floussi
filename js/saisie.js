@@ -127,6 +127,7 @@ function readTx() {
   if (d.parts && d.t !== "vir") d.parts.forEach(pt => { if (!cats(d.t).some(c => c.id === pt.cat)) pt.cat = (cats(d.t)[0] || {}).id || ""; });
 }
 function openTx(t, kind) {
+  if (t && t.t === "pret" && t.dar) { darSel = t.dar; location.hash = "daret"; return; }
   if (t && t.t === "pret") { const l = loan(t.loan); if (l) return openMove(l, t.mv, t); }
   if (!S.meta.accounts.length) { toast(L("Créez d'abord un compte dans l'onglet Comptes.")); return; }
   draft = t ? {...t, kind: "tx", amtS: plain(t.amt), amtToS: t.amtTo != null ? plain(t.amtTo) : "", autoTo: t.amtTo != null ? false : undefined, rep: "none", mode: "manual", end: "", tagsS: tagsOf(t).join(", "), catTouched: true}

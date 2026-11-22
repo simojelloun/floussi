@@ -679,3 +679,18 @@ svg{direction:ltr}
 .zk .frow .seg{margin-inline-start:auto}
 .zk-h{margin:-4px 4px 0}
 .zk .frow .fl{width:150px}
+
+/* daret */
+.dar-top{display:flex;flex-direction:column;gap:6px;text-align:center}
+.dar-top .dar-t{margin:0;font-weight:700;color:var(--ink-2)}
+.dar-top .dar-pot{margin:0;font-family:var(--display);font-size:32px;font-weight:700;color:var(--ink)}
+.dar-top .kv{text-align:start;margin-top:8px}
+.dar-list > li{display:flex;flex-direction:column;gap:8px;padding:12px 14px}
+.dar-h{display:flex;align-items:center;gap:12px}
+.dar-h .t{display:flex;flex-direction:column;min-width:0}
+.dar-n{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--track);font-weight:700;font-size:13px;flex:none}
+.dar-r.mine .dar-n{background:var(--accent);color:var(--accent-ink,#fff)}
+.dar-r.now{background:color-mix(in srgb,var(--accent) 6%,var(--surface))}
+.dar-r .pend-act{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.dar-got summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--ink-2)}
+.dar-gl{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}

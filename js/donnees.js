@@ -21,6 +21,7 @@ function migrate(m) {
   if (!Array.isArray(m.recurring)) m.recurring = [];
   if (!Array.isArray(m.templates)) m.templates = [];
   if (!m.zakat || typeof m.zakat !== "object") m.zakat = {};
+  if (!Array.isArray(m.darets)) m.darets = [];
   if (!m.ratesDate) m.ratesDate = today();
   m.accounts.forEach((a, i) => { if (!a.color) a.color = COLORS[(i * 3) % COLORS.length][0]; });
   m.categories.forEach((c, i) => {
@@ -80,6 +81,10 @@ function demoStore() {
     {id: "rc-sport", t: "dep", amt: 30000, acc: "a-mad", cat: "c-lois-sport", note: L("Abonnement salle de sport"), unit: "m", every: 1, start: p2 + "-02", end: "", k: 0, mode: "auto", paused: false},
     {id: "rc-cours", t: "rev", amt: 120000, acc: "a-esp", cat: "r-cours", note: L("Cours particuliers"), unit: "m", every: 1, start: p1 + "-" + pad(Math.max(1, Math.min(15, now.getDate()))), end: "", k: 1, mode: "manual", paused: false}
   ];
+  meta.darets = [{id: "dar-demo", name: L("Daret de la famille"), acc: "a-mad", amt: 100000, freq: "m1", start: p2 + "-05", track: false, got: {},
+    members: [L("Fatima"), L("Salma"), L("Moi"), L("Nadia"), L("Khadija"), L("Amina")].map((name, i) => ({name, me: i === 2}))}];
+  add(p2, {id: "dp-dar-demo-0", t: "pret", dar: "dar-demo", dir: "out", amt: 100000, acc: "a-mad", cat: "", note: "", date: p2 + "-05"});
+  add(p1, {id: "dp-dar-demo-1", t: "pret", dar: "dar-demo", dir: "out", amt: 100000, acc: "a-mad", cat: "", note: "", date: p1 + "-05"});
   add(p1, {id: "r-rc-cours-" + meta.recurring[1].start, t: "rev", amt: 120000, acc: "a-esp", cat: "r-cours", note: L("Cours particuliers"), date: meta.recurring[1].start, rec: "rc-cours"});
   return {meta, months};
 }

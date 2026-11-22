@@ -58,11 +58,11 @@ function restoreBackup(obj) {
 }
 function csv() {
   const q = s => '"' + String(s ?? "").replace(/"/g, '""') + '"';
-  const typ = t => t.t === "dep" ? L("Dépense") : t.t === "rev" ? L("Revenu") : t.t === "vir" ? L("Virement") : (loan(t.loan)?.kind === "lent" ? (t.mv === "base" ? L("Prêt accordé") : L("Remboursement reçu")) : (t.mv === "base" ? L("Emprunt") : L("Remboursement versé")));
+  const typ = t => t.t === "dep" ? L("Dépense") : t.t === "rev" ? L("Revenu") : t.t === "vir" ? L("Virement") : t.dar ? L("Daret") : (loan(t.loan)?.kind === "lent" ? (t.mv === "base" ? L("Prêt accordé") : L("Remboursement reçu")) : (t.mv === "base" ? L("Emprunt") : L("Remboursement versé")));
   const rows = [[L("Date"), L("Type"), L("Montant"), L("Devise"), L("Compte"), L("Catégorie"), L("Tiers"), L("Note"), L("Compte de destination"), L("Montant reçu"), L("Devise reçue")]];
   allTx().sort((a, b) => a.date.localeCompare(b.date)).forEach(t => {
     const a = acc(t.acc), b = acc(t.to);
-    rows.push([dm(t.date), typ(t), plain(isIn(t) ? t.amt : -t.amt), a ? a.cur : "", a ? a.name : "", t.cat ? catLabel(t.cat) : "", t.t === "pret" ? loan(t.loan)?.person || "" : "", t.note, b ? b.name : "", t.t === "vir" ? plain(t.amtTo ?? t.amt) : "", b ? b.cur : ""]);
+    rows.push([dm(t.date), typ(t), plain(isIn(t) ? t.amt : -t.amt), a ? a.cur : "", a ? a.name : "", t.cat ? catLabel(t.cat) : "", t.t === "pret" ? (t.dar ? daret(t.dar)?.name : loan(t.loan)?.person) || "" : "", t.note, b ? b.name : "", t.t === "vir" ? plain(t.amtTo ?? t.amt) : "", b ? b.cur : ""]);
   });
   return "﻿" + rows.map(r => r.map(q).join(";")).join("\r\n");
 }

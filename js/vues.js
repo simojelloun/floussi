@@ -98,13 +98,15 @@ function upcoming(days) {
     if (!l.due || l.due > lim) continue; const st = loanState(l); if (st.done || st.rest <= 0) continue;
     out.push({date: l.due, kind: "loan", id: l.id, late: l.due < t0, title: (l.kind === "lent" ? L("Remboursement attendu de ") : L("Remboursement à ")) + l.person, amt: fmt(st.rest, l.cur), cls: l.kind === "lent" ? "rev" : "dep", chip: chipHtml(null, "🤝")});
   }
+  for (const x of darDue("*", lim)) out.push({date: x.date, kind: "dar", act: "dar-open", id: x.d.id, late: x.date < t0, title: x.d.name + " · " + (x.kind === "pay" ? L("ma cotisation") : L("je reçois la cagnotte")), amt: (x.kind === "pay" ? "−" : "+") + fmt(x.amt, x.c), cls: x.kind === "pay" ? "dep" : "rev", chip: chipHtml(null, "👪"),
+    pay: `<button type="button" class="btn sm ghost paybtn" data-act="${x.kind === "pay" ? "dar-pay" : "dar-recv"}" data-id="${esc(x.d.id)}" data-k="${x.k}" aria-label="${esc((x.kind === "pay" ? L("Payer ma cotisation : ") : L("J'ai reçu la cagnotte : ")) + x.d.name + ", " + say(x.amt, x.c))}">✓ ${x.kind === "pay" ? L("Payée") : L("Reçue")}</button>`});
   return out.sort((a, b) => a.date.localeCompare(b.date));
 }
 function whenLabel(d) { const n = Math.round((new Date(d + "T12:00:00") - new Date(today() + "T12:00:00")) / 864e5); return n < 0 ? L("En retard") : n === 0 ? L("Aujourd'hui") : n === 1 ? L("Demain") : L("Dans ") + n + L(" jours"); }
 function upcomingBlock() {
   const u = upcoming(7); if (!u.length) return "";
   return `<div class="sec-h"><h2>${L("À venir")}</h2><small class="hint" style="margin:0">${L("7 prochains jours")}</small></div>
-    <ul class="card rows">${u.slice(0, 6).map(x => `<li class="${x.kind === "rec" ? "with-pay" : ""}"><button type="button" class="row" data-act="${x.kind === "rec" ? "edit-rec" : "loan"}" data-id="${esc(x.id)}" aria-label="${esc(x.title + ", " + x.amt.replace("−", L("moins") + " ") + ", " + whenLabel(x.date) + ", " + longDate(x.date))}">${x.chip}<span class="t"><b>${esc(x.title)}</b><small><span class="when${x.late || x.date <= addDays(today(), 2) ? " soon" : ""}">${whenLabel(x.date)}</span> · ${dm(x.date)}</small></span><span class="amt ${x.cls}">${esc(x.amt)}</span></button>${x.kind === "rec" ? `<button type="button" class="btn sm ghost paybtn" data-act="rec-pay" data-id="${esc(x.id)}" data-d="${x.date}" aria-label="${esc((x.cls === "rev" ? L("Marquer reçue : ") : L("Marquer payée : ")) + x.title + L(" du ") + longDate(x.date))}">✓ ${(x.cls === "rev" ? L("Reçue") : L("Payée"))}</button>` : ""}</li>`).join("")}</ul>`;
+    <ul class="card rows">${u.slice(0, 6).map(x => `<li class="${x.kind === "rec" || x.pay ? "with-pay" : ""}"><button type="button" class="row" data-act="${x.act || (x.kind === "rec" ? "edit-rec" : "loan")}" data-id="${esc(x.id)}" aria-label="${esc(x.title + ", " + x.amt.replace("−", L("moins") + " ") + ", " + whenLabel(x.date) + ", " + longDate(x.date))}">${x.chip}<span class="t"><b>${esc(x.title)}</b><small><span class="when${x.late || x.date <= addDays(today(), 2) ? " soon" : ""}">${whenLabel(x.date)}</span> · ${dm(x.date)}</small></span><span class="amt ${x.cls}">${esc(x.amt)}</span></button>${x.kind === "rec" ? `<button type="button" class="btn sm ghost paybtn" data-act="rec-pay" data-id="${esc(x.id)}" data-d="${x.date}" aria-label="${esc((x.cls === "rev" ? L("Marquer reçue : ") : L("Marquer payée : ")) + x.title + L(" du ") + longDate(x.date))}">✓ ${(x.cls === "rev" ? L("Reçue") : L("Payée"))}</button>` : x.pay || ""}</li>`).join("")}</ul>`;
 }
 const addDays = (d, n) => { const [y, m, x] = d.split("-").map(Number); return ymd(new Date(y, m - 1, x + n)); };
 /* alerte de budget au moment d'enregistrer */
@@ -171,9 +173,9 @@ function vModeles() {
 
 let opTag = "", searchAll = true;
 let tab = "accueil", month = today().slice(0, 7), cur = "MAD", filter = "all", query = "", loanFilter = "open", catKind = "dep";
-const TITLES = {zakat: L("Zakat"), accueil: "Floussi", operations: L("Opérations"), recurrentes: L("Opérations récurrentes"), prets: L("Prêts et emprunts"), budgets: L("Budgets"),
+const TITLES = {daret: L("Daret"), zakat: L("Zakat"), accueil: "Floussi", operations: L("Opérations"), recurrentes: L("Opérations récurrentes"), prets: L("Prêts et emprunts"), budgets: L("Budgets"),
   stats: L("Statistiques"), verrouillage: L("Verrouillage"), comptes: L("Comptes"), reglages: L("Réglages"), devises: L("Devises et cours"), categories: L("Catégories"), apparence: L("Apparence"), donnees: L("Sauvegarde et import"), bilan: L("Bilan du mois"), modeles: L("Modèles d'opérations")};
-const PARENT = {recurrentes: "operations", bilan: "stats"};
+const PARENT = {recurrentes: "operations", bilan: "stats", daret: "prets"};
 const IN_SETTINGS = ["reglages", "devises", "categories", "apparence", "donnees", "verrouillage", "modeles", "zakat"];
 const backLink = to => `<a class="back" href="#${to}"><span aria-hidden="true">‹</span> ${esc(TITLES[to])}</a>`;
 
@@ -183,6 +185,11 @@ function txInfo(t) {
     const b = acc(t.to), bn = b ? b.name : L("compte supprimé"), cross = b && b.cur !== ca && t.amtTo != null;
     return {title: t.note || L("Virement"), sub: an + " → " + bn, amt: fmt(t.amt, ca) + (cross ? " → " + fmt(t.amtTo, b.cur) : ""), cls: "vir", chip: chipHtml(null, "⇄"),
       sr: `${t.note ? t.note + ", " : ""}${L("virement de ")}${say(t.amt, ca)}${cross ? L(", reçu ") + say(t.amtTo, b.cur) : ""}${L(", de ")}${an}${L(" vers ")}${bn}${rec}`};
+  }
+  if (t.t === "pret" && t.dar) {
+    const d = daret(t.dar), name = d ? d.name : L("Daret"), k = +t.id.split("-").pop(), title = (t.dir === "in" ? L("Cagnotte reçue · ") : L("Cotisation · ")) + name;
+    return {title, sub: (isFinite(k) ? L("tour ") + (k + 1) + " · " : "") + an, amt: (t.dir === "in" ? "+" : "−") + fmt(t.amt, ca), cls: t.dir === "in" ? "rev" : "dep", chip: chipHtml(null, "👪"),
+      sr: `${title}, ${t.dir === "in" ? L("entrée de") : L("sortie de")} ${say(t.amt, ca)}, ${an}`};
   }
   if (t.t === "pret") {
     const l = loan(t.loan), p = l ? l.person : "?", lent = l ? l.kind === "lent" : t.dir === "out";
@@ -266,7 +273,7 @@ const opsList = () => {
   const q = norm(query.trim()), qa = q.replace(/[\s\u00a0\u202f]/g, "").replace(",", "."), wide = (q || opTag) && searchAll;
   const amtTxt = t => (Math.abs(t.amt) / 100).toFixed(2);
   return allTx().filter(t => (wide || (t.date >= opRange.from && t.date <= opRange.to)) && (!opAcc || t.acc === opAcc || t.to === opAcc) && (filter === "all" || t.t === filter) && (!opTag || tagsOf(t).includes(opTag))
-    && (!q || norm([t.note, t.pn, catLabel(t.cat), acc(t.acc)?.name, loan(t.loan)?.person, tagsOf(t).map(x => "#" + x).join(" ")].join(" ")).includes(q) || (/\d/.test(qa) && amtTxt(t).includes(qa))));
+    && (!q || norm([t.note, t.pn, catLabel(t.cat), acc(t.acc)?.name, loan(t.loan)?.person, t.dar && daret(t.dar)?.name, tagsOf(t).map(x => "#" + x).join(" ")].join(" ")).includes(q) || (/\d/.test(qa) && amtTxt(t).includes(qa))));
 };
 function opViewSeg() {
   const v = P.opView === "cal" ? "cal" : "list";
@@ -274,7 +281,7 @@ function opViewSeg() {
 }
 let calM = today().slice(0, 7), calDay = today();
 function calData(ym) {
-  const from = ym + "-01", to = lastDay(ym), days = {}, day = d => (days[d] = days[d] || {dep: 0, rev: 0, mv: 0, due: [], tx: []});
+  const from = ym + "-01", to = lastDay(ym), days = {}, day = d => (days[d] = days[d] || {dep: 0, rev: 0, mv: 0, due: [], dar: [], tx: []});
   for (const t of allTx()) { if (t.date < from || t.date > to || (opAcc && t.acc !== opAcc && t.to !== opAcc)) continue; const x = day(t.date); x.tx.push(t); if (t.t === "dep") x.dep++; else if (t.t === "rev") x.rev++; else x.mv++; }
   const have = txIds();
   for (const r of S.meta.recurring) {
@@ -282,6 +289,7 @@ function calData(ym) {
     const set = new Set(recOccs(r, from, to)); (r.open || []).forEach(d => { if (d >= from && d <= to) set.add(d); });
     for (const d of set) if (recState(r, d, have) === "due") day(d).due.push(r);
   }
+  for (const x of darDue(from, to)) day(x.date).dar.push(x);
   return days;
 }
 function vCalendar() {
@@ -291,12 +299,12 @@ function vCalendar() {
   let cells = ""; for (let i = 0; i < lead; i++) cells += `<span class="mc-x" aria-hidden="true"></span>`;
   for (let d = 1; d <= nd; d++) {
     const v = ym + "-" + pad(d), x = data[v], parts = [];
-    if (x) { if (x.dep) parts.push(plur(x.dep, L("dépense"), L("dépenses"))); if (x.rev) parts.push(plur(x.rev, L("revenu"), L("revenus"))); if (x.mv) parts.push(plur(x.mv, L("autre opération"), L("autres opérations"))); if (x.due.length) parts.push(plur(x.due.length, L("échéance à payer"), L("échéances à payer"))); }
-    const dueDep = x && x.due.some(r => r.t === "dep"), dueRev = x && x.due.some(r => r.t !== "dep");
+    if (x) { if (x.dep) parts.push(plur(x.dep, L("dépense"), L("dépenses"))); if (x.rev) parts.push(plur(x.rev, L("revenu"), L("revenus"))); if (x.mv) parts.push(plur(x.mv, L("autre opération"), L("autres opérations"))); if (x.due.length + x.dar.length) parts.push(plur(x.due.length + x.dar.length, L("échéance à payer"), L("échéances à payer"))); }
+    const dueDep = x && (x.due.some(r => r.t === "dep") || x.dar.some(y => y.kind === "pay")), dueRev = x && (x.due.some(r => r.t !== "dep") || x.dar.some(y => y.kind === "recv"));
     const dots = x ? `${x.dep ? '<i class="dt dep"></i>' : ""}${x.rev ? '<i class="dt rev"></i>' : ""}${x.mv ? '<i class="dt mv"></i>' : ""}${dueDep ? '<i class="dt due dep"></i>' : ""}${dueRev ? '<i class="dt due rev"></i>' : ""}` : "";
     cells += `<button type="button" class="mc-d${v === calDay ? " sel" : ""}${v === t0 ? " today" : ""}${x && x.due.length && v < t0 ? " late" : ""}" data-act="cal-day" data-d="${v}" tabindex="${v === calDay ? 0 : -1}" aria-pressed="${v === calDay}"${v === t0 ? ' aria-current="date"' : ""} aria-label="${esc(cap1(dayName(v)) + (v === t0 ? ", " + L("aujourd'hui") : "") + (parts.length ? ", " + parts.join(", ") : ", " + L("rien")))}"><span class="n">${d}</span><span class="dots" aria-hidden="true">${dots}</span></button>`;
   }
-  const x = data[calDay] || {tx: [], due: []}, have = txIds();
+  const x = data[calDay] || {tx: [], due: [], dar: []}, have = txIds();
   const dueRows = x.due.map(r => { const late = calDay < t0;
     return `<li class="pend"><div class="top-l">${r.t === "vir" ? chipHtml(null, "⇄") : chipHtml(cat(r.cat))}<div class="t"><b>${esc(recTitle(r))}</b><small><span class="pay-st due${late ? " late" : ""}">${late ? L("En retard") : r.t === "rev" ? L("À recevoir") : L("À payer")}</span> · ${esc(freqLabel(r))}</small></div><span class="amt ${r.t}">${esc(recSign(r))}</span></div>
       <div class="pend-act"><button type="button" class="btn sm ghost" data-act="rec-skip" data-id="${esc(r.id)}" data-d="${calDay}" aria-label="${esc(L("Ignorer ") + recTitle(r) + L(" du ") + longDate(calDay))}">${L("Ignorer")}</button><button type="button" class="btn sm" data-act="rec-pay" data-id="${esc(r.id)}" data-d="${calDay}" aria-label="${esc((r.t === "rev" ? L("Marquer reçue : ") : L("Marquer payée : ")) + recTitle(r) + ", " + recSign(r).replace("−", L("moins") + " ") + L(" du ") + longDate(calDay))}">✓ ${paidW(r)}</button></div></li>`; }).join("");
@@ -314,9 +322,9 @@ function vCalendar() {
       ${ym !== t0.slice(0, 7) || calDay !== t0 ? `<button type="button" class="link" data-act="cal-today">${L("Revenir à aujourd'hui")}</button>` : ""}
     </div>
     <div class="sec-h"><h2 id="cal-day-h">${esc(cap1(dayName(calDay)))}</h2>${Object.keys(sums).length ? `<span class="num ${Object.values(sums).every(v => v >= 0) ? "pos" : "neg"}" style="font-weight:700">${Object.entries(sums).map(([c, v]) => (v < 0 ? "−" : "+") + fmt(Math.abs(v), c)).join(" · ")}</span>` : ""}</div>
-    ${x.due.length ? `<ul class="card rows" aria-label="${esc(L("Échéances à payer"))}">${dueRows}</ul>` : ""}
+    ${x.due.length + x.dar.length ? `<ul class="card rows" aria-label="${esc(L("Échéances à payer"))}">${dueRows}${x.dar.map(darDueRow).join("")}</ul>` : ""}
     ${recPaid || plain.length ? `<div class="card" id="tx-list"><ul class="rows">${recPaid}${plain.length ? txByDay(plain).replace(/^<h3 class="day">.*?<\/h3><ul class="rows">/, "").replace(/<\/ul>$/, "") : ""}</ul></div>` : ""}
-    ${!x.due.length && !x.tx.length ? `<p class="empty card">${L("Aucune opération ni échéance ce jour-là.")}</p>` : ""}
+    ${!x.due.length && !x.dar.length && !x.tx.length ? `<p class="empty card">${L("Aucune opération ni échéance ce jour-là.")}</p>` : ""}
     <button type="button" class="btn ghost" data-act="new-on-day" data-d="${calDay}">＋ ${L("Ajouter une opération le ")}${esc(dm(calDay))}</button>`;
 }
 function vOperations() {
@@ -541,6 +549,7 @@ function vPrets() {
     <div class="seg wide" role="group" aria-label="${L("Afficher")}"><button type="button" data-act="loanfilter" data-v="open" aria-pressed="${loanFilter === "open"}">${L("En cours")}</button><button type="button" data-act="loanfilter" data-v="done" aria-pressed="${loanFilter === "done"}">${L("Remboursés")}</button></div>
     ${sec("lent", L("Prêts accordés"), loanFilter === "open" ? L("Personne ne vous doit d'argent.") : L("Aucun prêt entièrement remboursé."))}
     ${sec("borrowed", L("Emprunts"), loanFilter === "open" ? L("Vous ne devez d'argent à personne.") : L("Aucun emprunt entièrement remboursé."))}
+    ${darSection()}
     <p class="hint">${L("Un prêt fait sortir l'argent d'un de vos comptes et chaque remboursement reçu l'y fait revenir ; un emprunt fait l'inverse. Ces mouvements modifient les soldes mais ne comptent ni comme dépenses ni comme revenus.")}</p>`;
 }
 

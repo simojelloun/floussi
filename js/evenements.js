@@ -32,6 +32,7 @@ document.addEventListener("click", e => {
   else if (a === "tpl-use") { const tp = TPL().find(x => x.id === id); if (!tp || !draft) return; readTx(); tplApply(tp); renderTx("f-amt"); announce(L("Modèle « ") + tplLabel(tp) + L(" » repris. Vérifiez puis enregistrez.")); }
   else if (a === "tpl-save") saveTemplate();
   else if (a === "zakat-pay") zakatPay();
+  else if (a.startsWith("dar-")) darAction(a, el);
   else if (a === "cat-open") { if (!draft) return; readTx(); const c = cat(draft.cat); openPick("f-cat", c && c.parent ? c.parent : ""); }
   else if (a === "cat-tile") { if (!draft) return; const c = el.dataset.id;
     if (kids(c).length) { readTx(); draft.catTile = c; openPick("f-cat", c); }
