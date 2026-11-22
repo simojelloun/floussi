@@ -1,7 +1,9 @@
-/* Flousi : fonctionnement hors connexion.
+/* Floussi : fonctionnement hors connexion.
    Les fichiers de l'appli sont gardés en cache ; les données restent dans le navigateur (localStorage). */
-const CACHE = "flousi-v20";
-const FILES = ["./", "index.html", "manifest.webmanifest", "icon.svg", "icon-192.png", "icon-512.png", "maskable-512.png", "apple-touch-icon.png", "apple-touch-icon.png?v=2", "icon-192.png?v=2", "icon-512.png?v=2", "maskable-512.png?v=2", "raccourci-depense.png", "raccourci-revenu.png", "raccourci-stats.png"];
+const CACHE = "flousi-v30";
+const FILES = ["./", "index.html", "manifest.webmanifest", "icon.svg", "icon-192.png", "icon-512.png", "maskable-512.png", "apple-touch-icon.png", "apple-touch-icon.png?v=2", "icon-192.png?v=2", "icon-512.png?v=2", "maskable-512.png?v=2", "raccourci-depense.png", "raccourci-revenu.png", "raccourci-stats.png", "confidentialite.html",
+  "fonts/bricolage-grotesque.woff2", "fonts/figtree-400.woff2", "fonts/figtree-500.woff2", "fonts/figtree-600.woff2",
+  "fonts/plex-arabic-400.woff2", "fonts/plex-arabic-500.woff2", "fonts/plex-arabic-600.woff2", "fonts/plex-arabic-700.woff2"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
@@ -18,8 +20,8 @@ self.addEventListener("fetch", e => {
     e.respondWith(fetch(req).then(r => { const copy = r.clone(); caches.open(CACHE).then(c => c.put("index.html", copy)); return r; }).catch(() => caches.match("index.html")));
     return;
   }
-  // Fichiers de l'appli et polices : cache d'abord.
-  if (url.origin === location.origin || url.hostname.endsWith("fonts.googleapis.com") || url.hostname.endsWith("fonts.gstatic.com")) {
+  // Fichiers de l'appli (polices comprises) : cache d'abord. Aucun autre site n'est contacté.
+  if (url.origin === location.origin) {
     e.respondWith(caches.match(req).then(hit => hit || fetch(req).then(r => { if (r.ok || r.type === "opaque") { const copy = r.clone(); caches.open(CACHE).then(c => c.put(req, copy)); } return r; })));
   }
 });
