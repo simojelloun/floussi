@@ -16,15 +16,16 @@ function render() {
   document.title = (tab === "accueil" ? "" : TITLES[tab] + " – ") + "Floussi";
   const v = $("#view");
   if (loading) { v.innerHTML = `<p class="empty">${L("Chargement de vos comptes…")}</p>`; return; }
-  const k = v.contains(document.activeElement) ? focusKey(document.activeElement) : null, top = v.scrollTop;
-  v.innerHTML = VIEWS[tab](); enhanceSelects(v);
-  v.scrollTop = top;
-  if (k) { const el = v.querySelector(k); if (el) el.focus({preventScroll: true}); else $("#title").focus({preventScroll: true}); }
+  const fb = $("#fs-b"), inFs = !!fsKey && $("#fs").contains(document.activeElement), ftop = fb ? fb.scrollTop : 0;
+  const k = v.contains(document.activeElement) || inFs ? focusKey(document.activeElement) : null, top = v.scrollTop;
+  v.innerHTML = VIEWS[tab](); enhanceSelects(v); fsSync();
+  v.scrollTop = top; if (fsKey) fb.scrollTop = ftop;
+  if (k) { const el = (fsKey && $("#fs").querySelector(k)) || v.querySelector(k); if (el) el.focus({preventScroll: true}); else (fsKey ? $("#fs-close") : $("#title")).focus({preventScroll: true}); }
 }
 let first = true;
 function route() {
   const h = location.hash.slice(1), next = TITLES[h] ? h : "accueil", changed = next !== tab;
-  if (changed) { tab = next; const v = $("#view"); v.scrollTop = 0; v.classList.add("enter"); clearTimeout(route.t); route.t = setTimeout(() => v.classList.remove("enter"), 700); }
+  if (changed) { tab = next; fsKey = ""; const v = $("#view"); v.scrollTop = 0; v.classList.add("enter"); clearTimeout(route.t); route.t = setTimeout(() => v.classList.remove("enter"), 700); }
   render();
   if (changed && !first) $("#title").focus();
   first = false;
@@ -34,7 +35,7 @@ function applyStatic() {
   const lab = {accueil: L("Accueil"), operations: L("Opérations"), prets: L("Prêts"), budgets: L("Budgets"), stats: L("Stats"), comptes: L("Comptes")};
   document.querySelectorAll("nav.tabs a").forEach(a => { const k = a.getAttribute("href").slice(1), tn = [...a.childNodes].find(n => n.nodeType === 3 && n.textContent.trim()); if (tn) tn.textContent = lab[k]; });
   $("nav.tabs").setAttribute("aria-label", L("Sections")); $(".skip").textContent = L("Aller au contenu"); $("#fab .sr").textContent = L("Ajouter une opération");
-  $("#gear").setAttribute("aria-label", L("Réglages")); $("#sync").setAttribute("aria-label", L("État de la sauvegarde"));
+  $("#gear").setAttribute("aria-label", L("Réglages")); $("#fs-close").setAttribute("aria-label", L("Quitter le plein écran")); $("#sync").setAttribute("aria-label", L("État de la sauvegarde"));
 }
 
 /* ================= effet « génie » (comme la réduction d'une fenêtre sur Mac) ================= */

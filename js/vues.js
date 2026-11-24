@@ -465,9 +465,9 @@ function insights2(F, f, dc) {
   // cumul
   const n = Math.min(len, 400), cur = [], prv = []; let a1 = 0, a2 = 0;
   for (let i = 0; i < n; i++) { const d = addD(range.from, i); a2 += perPrev[addD(pFrom, i)] || 0; prv.push(a2); if (d <= end) { a1 += perDay[d] || 0; cur.push(a1); } }
-  const cmax = niceMax(Math.max(a1, a2, 1)), X0 = 40, W = 290, Y0 = 8, H = 100, px = i => n === 1 ? X0 + W / 2 : X0 + i / (n - 1) * W, py = y => Y0 + H - y / cmax * H;
+  const cmax = niceMax(Math.max(a1, a2, 1)), X0 = 40, W = 290, Y0 = 8, H = fsH("cumul", 100), px = i => n === 1 ? X0 + W / 2 : X0 + i / (n - 1) * W, py = y => Y0 + H - y / cmax * H;
   const line = arr => arr.map((y, i) => (i ? "L" : "M") + px(i).toFixed(1) + " " + py(y).toFixed(1)).join(" ");
-  const cumul = `<svg class="chart" viewBox="0 0 340 128" aria-hidden="true">${[0, .5, 1].map(k => `<line class="grid" x1="${X0}" x2="${X0 + W}" y1="${py(cmax * k)}" y2="${py(cmax * k)}"/><text x="${X0 - 5}" y="${py(cmax * k) + 3}" text-anchor="end">${compact(cmax * k)}</text>`).join("")}
+  const cumul = `<svg class="chart" viewBox="0 0 340 ${H + 28}" aria-hidden="true">${[0, .5, 1].map(k => `<line class="grid" x1="${X0}" x2="${X0 + W}" y1="${py(cmax * k)}" y2="${py(cmax * k)}"/><text x="${X0 - 5}" y="${py(cmax * k) + 3}" text-anchor="end">${compact(cmax * k)}</text>`).join("")}
     <path d="${line(prv)}" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4 4"/><path class="line" pathLength="1" d="${line(cur)}" fill="none" stroke="var(--s2)" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
     <text x="${X0}" y="${Y0 + H + 16}">${dm(range.from).slice(0, 5)}</text><text x="${X0 + W}" y="${Y0 + H + 16}" text-anchor="end">${dm(range.to).slice(0, 5)}</text></svg>`;
   // calendrier du dernier mois de la période
@@ -488,7 +488,7 @@ function insights2(F, f, dc) {
   const revs = Object.entries(f.byTop.rev).filter(x => x[1] > 0).sort((x, y) => y[1] - x[1]), rmax = revs.length ? revs[0][1] : 1;
   const bar = (chip, name, extra, x, max, col) => `<li><div class="rank" style="--cc:${col}">${chip}<span>${esc(name)} <small class="num">${esc(extra)}</small></span><span class="amt">${fmt(x, dc)}</span><span class="track"><i style="width:${Math.max(2, x / max * 100)}%"></i></span></div></li>`;
   return `<h2 class="sec-h">${L("Dépenses cumulées")}</h2>
-    <div class="card"><p class="sr">${L("Dépenses cumulées")} : ${say(a1, dc)}. ${L("Période précédente")} : ${say(a2, dc)}.</p><div class="legend" aria-hidden="true"><span><i style="background:var(--s2)"></i>${L("Cette période")}</span><span><i style="background:var(--muted)"></i>${L("Période précédente")}</span></div>${zoomWrap(cumul)}</div>
+    <div class="card fsw" data-fs="cumul" data-fs-t="${esc(L("Dépenses cumulées"))}" data-fs-s="${esc(presetLabel() + " · " + dm(range.from) + " – " + dm(range.to))}"><p class="sr">${L("Dépenses cumulées")} : ${say(a1, dc)}. ${L("Période précédente")} : ${say(a2, dc)}.</p><div class="legend" aria-hidden="true"><span><i style="background:var(--s2)"></i>${L("Cette période")}</span><span><i style="background:var(--muted)"></i>${L("Période précédente")}</span></div>${zoomWrap(cumul, "cumul", L("Dépenses cumulées"))}</div>
     <h2 class="sec-h">${L("Calendrier des dépenses")} · ${esc(cap1(monthName(hm)))}</h2>
     <div class="card">${heat}<p class="hint">${rec ? L("Jour record :") + " <b>" + esc(cap1(dayName(rec[0]))) + "</b> · " + fmt(rec[1], dc) + ". " : ""}${L("Jours sans dépense :")} <b>${zero}</b> / ${elapsed}</p></div>
     <h2 class="sec-h">${L("Charges fixes et dépenses variables")}</h2>
@@ -586,8 +586,9 @@ function statAccLabel(F) {
   for (const c of usedCurs()) { const ids = all.filter(a => a.cur === c).map(a => a.id); if (ids.length === F.ids.length && ids.every(i => F.ids.includes(i))) return L("Comptes en ") + plural(c); }
   return F.ids.length + " comptes";
 }
-function zoomWrap(svg) {
-  return `<div class="zoomable">${'<div class="zin">' + svg + "</div>"}</div><div class="zbar"><button type="button" data-act="zoom" data-z="in" aria-label="${L("Agrandir le graphique")}">+</button><button type="button" data-act="zoom" data-z="out" aria-label="${L("Réduire le graphique")}">−</button><button type="button" data-act="zoom" data-z="reset" aria-label="${L("Taille normale du graphique")}">1:1</button></div>`;
+function zoomWrap(svg, fk, ft) {
+  const vb = svg.match(/viewBox="0 0 ([\d.]+) ([\d.]+)"/), ar = vb ? (vb[1] / vb[2]).toFixed(3) : "";
+  return `<div class="zoomable"${ar ? ` style="--ar:${ar}"` : ""}>${'<div class="zin">' + svg + "</div>"}</div><div class="zbar">${fk ? fsBtn(fk, ft) : ""}<button type="button" data-act="zoom" data-z="in" aria-label="${L("Agrandir le graphique")}">+</button><button type="button" data-act="zoom" data-z="out" aria-label="${L("Réduire le graphique")}">−</button><button type="button" data-act="zoom" data-z="reset" aria-label="${L("Taille normale du graphique")}">1:1</button></div>`;
 }
 function balanceSeries(F) {
   const txs = allTx(), last = txs.reduce((m, t) => t.date > m ? t.date : m, today());
@@ -605,7 +606,7 @@ function balanceChart(F) {
   let lo = Math.min(...ser.map(p => p.v)), hi = Math.max(...ser.map(p => p.v));
   const minP = ser.find(p => p.v === lo), maxP = ser.find(p => p.v === hi);
   if (hi === lo) { hi += 10000; lo -= 10000; } const padv = (hi - lo) * .1; lo -= padv; hi += padv;
-  const X0 = 42, W = 288, Y0 = 10, H = 104, n = ser.length;
+  const X0 = 42, W = 288, Y0 = 10, H = fsH("bal", 104), n = ser.length;
   const x = i => n === 1 ? X0 + W / 2 : X0 + i / (n - 1) * W, y = v => Y0 + H - (v - lo) / (hi - lo) * H;
   const pts = ser.map((p, i) => x(i).toFixed(1) + "," + y(p.v).toFixed(1)).join(" ");
   const e = ser[n - 1], diff = e.v - ser.start;
@@ -613,7 +614,7 @@ function balanceChart(F) {
   return `<h2 class="sr">${L("Évolution du solde")}</h2>
   <p class="sr">${L("Du ")}${longDate(ser[0].d)}${L(" au ")}${longDate(e.d)}${L(" : solde de départ ")}${say(ser.start, dc)}${L(", solde final ")}${say(e.v, dc)}${L(", soit une variation de ")}${diff < 0 ? L("moins") : L("plus")} ${say(Math.abs(diff), dc)}${L(". Le plus bas : ")}${say(minP.v, dc)}${L(" le ")}${longDate(minP.d)}${L(". Le plus haut : ")}${say(maxP.v, dc)}${L(" le ")}${longDate(maxP.d)}.</p>
   <div id="bal-cap" class="cap" aria-live="polite"><span>${L("Solde au ")}${dm(e.d)}</span><b class="num">${fmt(e.v, dc)}</b></div>
-  ${zoomWrap(`<svg class="chart" id="bal" viewBox="0 0 340 140" aria-hidden="true">
+  ${zoomWrap(`<svg class="chart" id="bal" viewBox="0 0 340 ${H + 36}" aria-hidden="true">
     ${[0, .5, 1].map(k => { const v = lo + (hi - lo) * k; return `<line class="grid" x1="${X0}" x2="${X0 + W}" y1="${y(v)}" y2="${y(v)}"/><text x="${X0 - 5}" y="${y(v) + 3}" text-anchor="end">${compact(v)}</text>`; }).join("")}
     ${lo < 0 && hi > 0 ? `<line x1="${X0}" x2="${X0 + W}" y1="${y(0)}" y2="${y(0)}" stroke="var(--muted)" stroke-dasharray="3 3"/>` : ""}
     ${n > 1 ? `<polygon points="${X0},${Y0 + H} ${pts} ${X0 + W},${Y0 + H}" fill="var(--s1)" opacity=".12" class="area"/><path class="line" pathLength="1" d="M${pts.split(" ").join(" L")}" fill="none" stroke="var(--s1)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>` : ""}
@@ -621,7 +622,7 @@ function balanceChart(F) {
     <circle id="bal-dot" cx="${x(n - 1)}" cy="${y(e.v)}" r="4.5" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"/>
     <text x="${X0}" y="${Y0 + H + 16}">${dm(ser[0].d)}</text><text x="${X0 + W}" y="${Y0 + H + 16}" text-anchor="end">${dm(e.d)}</text>
     <rect x="${X0}" y="${Y0}" width="${W}" height="${H}" fill="transparent"/>
-  </svg>`)}
+  </svg>`, "bal", L("Évolution du solde"))}
   <div class="f inline"><span id="bal-date-lab">${L("Lire le solde au")}</span>${dateInput("bal-date", e.d, {min: ser[0].d, max: e.d})}</div>
   <small class="hint" aria-hidden="true">${L("Variation sur la période : ")}<b class="num">${diff < 0 ? "−" : "+"}${fmt(Math.abs(diff), dc)}</b>${L(". Touchez la courbe pour lire le solde à une date, pincez pour zoomer.")}</small>`;
 }
@@ -659,22 +660,24 @@ function vStats() {
   let ms = []; for (let m = range.from.slice(0, 7); m <= range.to.slice(0, 7) && ms.length < 600; m = shiftMonth(m, 1)) ms.push(m);
   const cut = ms.length > 12; if (cut) ms = ms.slice(-12);
   const data = ms.map(m => flowsBetween(m + "-01" < range.from ? range.from : m + "-01", lastDay(m) > range.to ? range.to : lastDay(m), F));
-  const max = niceMax(Math.max(...data.map(d => Math.max(d.rev, d.dep)))), X0 = 36, W = 300, Y0 = 12, H = 120, gw = W / ms.length, bw = Math.max(4, Math.min(14, gw / 2 - 3));
+  const max = niceMax(Math.max(...data.map(d => Math.max(d.rev, d.dep)))), X0 = 36, W = 300, Y0 = 12, H = fsH("months", 120), gw = W / ms.length, bw = Math.max(4, Math.min(14, gw / 2 - 3));
   const y = v => Y0 + H - v / max * H;
-  const svg = `<svg class="chart" viewBox="0 0 340 158" aria-hidden="true">
+  const svg = `<svg class="chart" viewBox="0 0 340 ${H + 38}" aria-hidden="true">
     ${[0, .5, 1].map(k => `<line class="grid" x1="${X0}" x2="${X0 + W}" y1="${y(max * k)}" y2="${y(max * k)}"/><text x="${X0 - 5}" y="${y(max * k) + 3}" text-anchor="end">${compact(max * k)}</text>`).join("")}
     ${data.map((d, i) => { const gx = X0 + i * gw; return `<g class="m" data-act="pick-month" data-m="${ms[i]}"><rect x="${gx}" y="${Y0 - 6}" width="${gw}" height="${H + 26}" fill="transparent"/><path d="${barPath(gx + gw / 2 - bw - 1, y(d.rev), bw, d.rev / max * H)}" fill="var(--s1)" class="bar" style="--i:${i}"/><path d="${barPath(gx + gw / 2 + 1, y(d.dep), bw, d.dep / max * H)}" fill="var(--s2)" class="bar" style="--i:${i}"/><text x="${gx + gw / 2}" y="${Y0 + H + 14}" text-anchor="middle">${monthName(ms[i], true)}</text></g>`; }).join("")}
   </svg>`;
   const tiles = `<div class="tiles"><div class="tile"><small>${L("Revenus")}</small><b>${NF.format(f.rev / 100)}<span>${esc(sym(dc))}</span></b></div><div class="tile"><small>${L("Dépenses")}</small><b>${NF.format(f.dep / 100)}<span>${esc(sym(dc))}</span></b></div><div class="tile"><small>${L("Solde")}</small><b>${net < 0 ? "−" : "+"}${NF.format(Math.abs(net) / 100)}<span>${esc(sym(dc))}</span></b></div></div>`;
   const V = [["cat", L("Catégories")], ["bal", L("Solde")], ["months", L("Par mois")], ["more", L("Analyse")]];
   let body;
-  if (statView === "cat") body = `<div class="sec-h" style="align-items:center;margin-bottom:-4px;flex-wrap:wrap"><h2>${L("Par catégorie")}</h2>
+  const fsS = presetLabel() + " · " + dm(range.from) + " – " + dm(range.to) + " · " + statAccLabel(F), fsA = (k, t) => `data-fs="${k}" data-fs-t="${esc(t)}" data-fs-s="${esc(fsS)}"`;
+  const catT = statKind === "dep" ? L("Dépenses par catégorie") : L("Revenus par catégorie");
+  if (statView === "cat") body = `<div class="fsw" ${fsA("cat", catT)}><div class="sec-h" style="align-items:center;margin-bottom:-4px;flex-wrap:wrap"><h2>${L("Par catégorie")}</h2>${sp.length ? fsBtn("cat", catT) : ""}
       <div class="filters"><div class="seg" role="group" aria-label="${L("Dépenses ou revenus")}"><button type="button" data-act="statkind" data-v="dep" aria-pressed="${statKind === "dep"}">${L("Dépenses")}</button><button type="button" data-act="statkind" data-v="rev" aria-pressed="${statKind === "rev"}">${L("Revenus")}</button></div>
       <div class="seg" role="group" aria-label="${L("Type de graphique")}"><button type="button" data-act="catview" data-v="bars" aria-pressed="${catView === "bars"}">${L("Barres")}</button><button type="button" data-act="catview" data-v="pie" aria-pressed="${catView === "pie"}">${L("Camembert")}</button></div></div></div>
-    <div class="card">${!sp.length ? `<p class="empty">${statKind === "dep" ? L("Aucune dépense") : L("Aucun revenu")}${L(" sur cette période pour ces comptes.")}</p>` : (catView === "pie" ? pieChart(sp.filter(x => x[1] > 0), sp.reduce((z, x) => z + Math.max(0, x[1]), 0) || 1, dc) : "") + rankList(sp, tot, dc) + `<small class="hint" aria-hidden="true">${L("Touchez une catégorie pour voir ses sous-catégories et ses opérations.")}</small>`}</div>`;
-  else if (statView === "bal") body = `<div class="card">${balanceChart(F)}</div>`;
+    <div class="card">${!sp.length ? `<p class="empty">${statKind === "dep" ? L("Aucune dépense") : L("Aucun revenu")}${L(" sur cette période pour ces comptes.")}</p>` : (catView === "pie" ? pieChart(sp.filter(x => x[1] > 0), sp.reduce((z, x) => z + Math.max(0, x[1]), 0) || 1, dc) : "") + rankList(sp, tot, dc) + `<small class="hint" aria-hidden="true">${L("Touchez une catégorie pour voir ses sous-catégories et ses opérations.")}</small>`}</div></div>`;
+  else if (statView === "bal") body = `<div class="card fsw" ${fsA("bal", L("Évolution du solde"))}>${balanceChart(F)}</div>`;
   else if (statView === "more") body = insights(F, f, dc);
-  else body = `<h2 class="sr">${L("Revenus et dépenses par mois")}</h2><div class="card"><div class="legend" aria-hidden="true"><span><i style="background:var(--s1)"></i>${L("Revenus")}</span><span><i style="background:var(--s2)"></i>${L("Dépenses")}</span></div>${zoomWrap(svg)}
+  else body = `<h2 class="sr">${L("Revenus et dépenses par mois")}</h2><div class="card fsw" ${fsA("months", L("Revenus et dépenses par mois"))}><div class="legend" aria-hidden="true"><span><i style="background:var(--s1)"></i>${L("Revenus")}</span><span><i style="background:var(--s2)"></i>${L("Dépenses")}</span></div>${zoomWrap(svg, "months", L("Revenus et dépenses par mois"))}
       <table class="mini"><caption class="sr">${L("Revenus, dépenses et solde par mois, en ")}${esc(word)}</caption><thead><tr><th scope="col">${L("Mois")}</th><th scope="col">${L("Revenus")}</th><th scope="col">${L("Dépenses")}</th><th scope="col">${L("Solde")}</th></tr></thead><tbody>${ms.map((m, i) => `<tr><th scope="row"><button type="button" class="linkbtn" data-act="pick-month" data-m="${m}" aria-label="${esc(monthName(m))}${L(", limiter la période à ce mois")}">${monthName(m, true)}${ms.length > 1 && m.slice(5) === "01" || i === 0 ? " " + m.slice(0, 4) : ""}</button></th><td>${NF.format(data[i].rev / 100)}</td><td>${NF.format(data[i].dep / 100)}</td><td>${NF.format((data[i].rev - data[i].dep) / 100)}</td></tr>`).join("")}</tbody></table>
       <small class="hint">${L("Choisissez un mois pour limiter la période à ce mois.")}${cut ? L(" Seuls les 12 derniers mois de la période sont affichés.") : ""}</small></div>`;
   const al = statAccLabel(F);

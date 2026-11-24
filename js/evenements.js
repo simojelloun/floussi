@@ -10,6 +10,8 @@ document.addEventListener("click", e => {
   if (a === "pick") return openPick(el.dataset.for);
   if (a === "pick-opt") return pickOpt(+el.dataset.i);
   if (a === "pick-sub") { pkCtx.sub = el.dataset.v; renderPickTree(true); announce(el.dataset.v && cat(el.dataset.v) ? cat(el.dataset.v).name : ""); return; }
+  if (a === "pick-add") { pkCtx.add = {par: el.dataset.par || "", name: el.dataset.name || ""}; renderPickTree(); return; }
+  if (a === "pick-add-cancel") { pkCtx.add = null; renderPickTree(true); const b = $("#pick").querySelector(".pk-add"); if (b) b.focus(); return; }
   if (a === "pick-back") { const v = pkCtx.sub; pkCtx.sub = ""; renderPickTree(false); const b = $("#pick").querySelector(`[data-v="${CSS.escape(v)}"]`); if (b) b.focus(); return; }
   if (a === "pick-close") return closePick();
   if (a === "pin") return pinPress(el.dataset.k);
@@ -125,6 +127,8 @@ document.addEventListener("click", e => {
     announce(c.name + " " + L("en position") + " " + (j + 1) + " / " + sib.length);
   }
   else if (a === "cat-detail") openCatDetail(id);
+  else if (a === "fs") fsOpen(el.dataset.k);
+  else if (a === "fs-close") fsClose();
   else if (a === "zoom") { const z = el.parentElement.previousElementSibling; if (!z || !z.classList.contains("zoomable")) return; const r = z.getBoundingClientRect(), s = zGet(z).s; el.dataset.z === "reset" ? zSet(z, 1, 0, 0) : zAround(z, el.dataset.z === "in" ? s * 1.5 : s / 1.5, r.width / 2, r.height / 2); }
   else if (a === "new-acc") openAcc();
   else if (a === "edit-acc") openAcc(acc(id));
