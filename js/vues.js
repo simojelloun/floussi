@@ -161,6 +161,7 @@ function tagTotals(from, to, F) {
   return Object.entries(m).sort((x, y) => y[1].dep - x[1].dep);
 }
 function vBilan() {
+  if (!isPro()) return backLink("stats") + proTeaser(L("Bilan du mois en PDF"), L("Un résumé clair du mois, à imprimer ou à garder en PDF."), "bilan");
   const F = statF(), dc = F.out, ym = bilM, from = ym + "-01", to = lastDay(ym), f = flowsBetween(from, to, F), pf = flowsBetween(shiftMonth(ym, -1) + "-01", lastDay(shiftMonth(ym, -1)), F);
   const net = f.rev - f.dep, rate = f.rev > 0 ? Math.round(net / f.rev * 100) : null;
   const pct = (a, b) => b ? Math.round((a - b) / b * 100) : null, dDep = pct(f.dep, pf.dep), dRev = pct(f.rev, pf.rev);
@@ -558,7 +559,7 @@ function vBudgets() {
       const sr = `${n}${c && !c.parent && kids(c.id).length ? L(", sous-catégories comprises") : ""} : ${say(s.spent, b.cur)}${L(" dépensés sur ")}${say(b.limit, b.cur)}, ${Math.round(s.r * 100)} %. ${s.label}. ${rest >= 0 ? L("Reste ") + say(rest, b.cur) : L("Dépassement de ") + say(-rest, b.cur)}${L(". Modifier")}`;
       return `<li><button type="button" class="budget" data-act="edit-budget" data-id="${esc(b.id)}" aria-label="${esc(sr)}"><span class="h"><b>${esc(n)}</b><span class="state ${s.cls}">${s.label}</span></span><span class="track"><i class="${s.cls}" style="width:${Math.min(100, s.r * 100)}%"></i></span><small><span class="num">${fmt(s.spent, b.cur)}${L(" sur ")}${fmt(b.limit, b.cur)}</span><span class="num">${rest >= 0 ? L("Reste ") + fmt(rest, b.cur) : L("Dépassement de ") + fmt(-rest, b.cur)}</span></small></button></li>`;
     }).join("") : `<li class="empty">${L("Aucun budget en ")}${esc(plural(cur))}${L(". Fixez un plafond mensuel par catégorie pour être averti avant de le dépasser.")}</li>`}</ul>
-    <button type="button" class="btn ghost" data-act="new-budget">${L("Ajouter un budget")}</button>
+    ${proLimit(`<button type="button" class="btn ghost" data-act="new-budget">${L("Ajouter un budget")}</button>`, L("Ajouter un budget"), "bud", S.meta.budgets.length, FREE.bud, L("budget"), L("budgets"))}
     <p class="hint">${L("Le budget d'une catégorie principale compte aussi les dépenses de ses sous-catégories.")}</p>`;
 }
 
@@ -707,10 +708,11 @@ function vStats() {
       <div class="seg" role="group" aria-label="${L("Type de graphique")}"><button type="button" data-act="catview" data-v="bars" aria-pressed="${catView === "bars"}">${L("Barres")}</button><button type="button" data-act="catview" data-v="pie" aria-pressed="${catView === "pie"}">${L("Camembert")}</button></div></div></div>
     <div class="card">${!sp.length ? `<p class="empty">${statKind === "dep" ? L("Aucune dépense") : L("Aucun revenu")}${L(" sur cette période pour ces comptes.")}</p>` : (catView === "pie" ? pieChart(sp.filter(x => x[1] > 0), sp.reduce((z, x) => z + Math.max(0, x[1]), 0) || 1, dc) : "") + rankList(sp, tot, dc) + `<small class="hint" aria-hidden="true">${L("Touchez une catégorie pour voir ses sous-catégories et ses opérations.")}</small>`}</div></div>`;
   else if (statView === "bal") body = `<div class="card fsw" ${fsA("bal", L("Évolution du solde"))}>${balanceChart(F)}</div>`;
-  else if (statView === "more") body = insights(F, f, dc);
+  else if (statView === "more") body = isPro() ? insights(F, f, dc) : proTeaser(L("Analyse détaillée"), L("Taux d'épargne, tendances, dépenses fixes et variables, jours les plus chers."), "ana");
   else body = `<h2 class="sr">${L("Revenus et dépenses par mois")}</h2><div class="card fsw" ${fsA("months", L("Revenus et dépenses par mois"))}><div class="legend" aria-hidden="true"><span><i style="background:var(--s1)"></i>${L("Revenus")}</span><span><i style="background:var(--s2)"></i>${L("Dépenses")}</span></div>${zoomWrap(svg, "months", L("Revenus et dépenses par mois"))}
       <table class="mini"><caption class="sr">${L("Revenus, dépenses et solde par mois, en ")}${esc(word)}</caption><thead><tr><th scope="col">${L("Mois")}</th><th scope="col">${L("Revenus")}</th><th scope="col">${L("Dépenses")}</th><th scope="col">${L("Solde")}</th></tr></thead><tbody>${ms.map((m, i) => `<tr><th scope="row"><button type="button" class="linkbtn" data-act="pick-month" data-m="${m}" aria-label="${esc(monthName(m))}${L(", limiter la période à ce mois")}">${monthName(m, true)}${ms.length > 1 && m.slice(5) === "01" || i === 0 ? " " + m.slice(0, 4) : ""}</button></th><td>${NF.format(data[i].rev / 100)}</td><td>${NF.format(data[i].dep / 100)}</td><td>${NF.format((data[i].rev - data[i].dep) / 100)}</td></tr>`).join("")}</tbody></table>
       <small class="hint">${L("Choisissez un mois pour limiter la période à ce mois.")}${cut ? L(" Seuls les 12 derniers mois de la période sont affichés.") : ""}</small></div>`;
+  if (!isPro() && (statView === "bal" || statView === "months")) body = proTeaser(statView === "bal" ? L("Évolution du solde") : L("Revenus et dépenses par mois"), L("Les statistiques avancées font partie de Floussi Pro. La répartition par catégorie reste gratuite."), "stats");
   const al = statAccLabel(F);
   return `<div class="bar-line"><button type="button" class="period" data-act="period" aria-label="${esc(L("Période : ") + presetLabel() + L(", du ") + longDate(range.from) + L(" au ") + longDate(range.to) + L(". Changer"))}"><b>${esc(presetLabel())}</b><small>${dm(range.from)} – ${dm(range.to)}</small><span aria-hidden="true">▾</span></button>
       <button type="button" class="period" data-act="stat-accs" aria-label="${esc(L("Comptes : ") + al + L(". Changer"))}"><b>${esc(al)}</b><small>${plur(F.ids.length, L("compte"), L("comptes"))} · ${esc(sym(dc))}</small><span aria-hidden="true">▾</span></button></div>
@@ -726,13 +728,14 @@ function vComptes() {
   return banner() + `<h2 class="sr">${L("Mes comptes")}</h2>
     <ul class="card rows cats accs">${accSorted().map((a, i, all) => `<li data-acc="${esc(a.id)}"><div class="cat-line"><button type="button" class="row" data-act="edit-acc" data-id="${esc(a.id)}" aria-label="${esc(a.name + L(", solde ") + say(balance(a), a.cur) + L(", solde de départ ") + say(a.initial, a.cur) + L(". Modifier"))}">${accChip(a)}<span class="t"><b>${esc(a.name)}</b><small>${L("Solde de départ ")}${fmt(a.initial, a.cur)}</small></span><span class="amt">${fmt(balance(a), a.cur)}</span></button><button type="button" class="drag" data-drag="${esc(a.id)}" data-act="grip-acc" data-id="${esc(a.id)}" aria-label="${esc(L("Déplacer") + " " + a.name + ", " + L("Position") + " " + (i + 1) + " / " + all.length + ". " + L("Activez pour changer l'ordre"))}">${GRIP}</button></div></li>`).join("")}</ul>
     ${S.meta.accounts.length > 1 ? `<p class="hint">${L("Faites glisser la poignée ")}<span aria-hidden="true">⋮⋮</span>${L(" pour changer l'ordre des comptes. Les comptes en évidence sur l'Accueil restent en tête des listes.")}</p>` : ""}
-    <button type="button" class="btn ghost" data-act="new-acc">${L("Ajouter un compte")}</button>
+    ${proLimit(`<button type="button" class="btn ghost" data-act="new-acc">${L("Ajouter un compte")}</button>`, L("Ajouter un compte"), "acc", S.meta.accounts.length, FREE.acc, L("compte"), L("comptes"))}
     <p class="hint">${L("Devises, catégories, apparence et sauvegarde se règlent avec la roue dentée en haut à droite. ")}<a class="link" href="#reglages">${L("Ouvrir les réglages")}</a></p>`;
 }
 function vReglages() {
   const nc = S.meta.categories.length, nr = S.meta.recurring.length, ncur = S.meta.currencies.length;
   const item = (h, e, t, d) => `<li><a href="#${h}"><span class="chip emo" aria-hidden="true"><span class="e">${e}</span></span><span><b>${t}</b><small>${d}</small></span><span class="chev" aria-hidden="true">›</span></a></li>`;
-  return `<ul class="card plain menu">
+  const proItem = NATIVE ? `<li><button type="button" class="menu-b" data-act="pro" data-why="menu"><span class="chip emo" aria-hidden="true"><span class="e">⭐</span></span><span><b>Floussi Pro</b><small>${isPro() ? L("Actif") : L("Outils avancés et personnalisation")}</small></span><span class="chev" aria-hidden="true">›</span></button></li>` : "";
+  return `<ul class="card plain menu">${proItem}
     ${item("devises", "💱", L("Devises et cours"), `${plur(ncur, L("devise"), L("devises"))}${L(", référence : ")}${esc(L(curOf(base()).name))}`)}
     ${item("categories", "🏷️", L("Catégories"), `${plur(nc, L("catégorie"), L("catégories"))}${L(", sous-catégories, icônes et couleurs")}`)}
     ${item("recurrentes", "🔁", L("Opérations récurrentes"), plur(nr, L("récurrence"), L("récurrences")))}
@@ -753,7 +756,7 @@ function vDevises() {
   return backLink("reglages") + `<div class="card"><label class="f"><span>${L("Devise de référence")}</span><select id="base-cur">${curOpts(b)}</select></label></div><p class="hint">${L("Devise de référence : ")}${esc(L(curOf(b).name))}${L(". Les cours servent à convertir les totaux et à proposer le montant reçu lors d'un virement entre devises. Cours saisis le ")}${dm(S.meta.ratesDate)}.</p>
     <ul class="card rows">${S.meta.currencies.map(c => { const isB = c.code === b, rt = "1 " + c.sym + " = " + NF4.format(c.rate) + " " + sym(b);
       return `<li><button type="button" class="row" data-act="edit-cur" data-c="${esc(c.code)}" aria-label="${esc(c.name + ", " + (isB ? L("devise de référence") : "1 " + c.name + L(" vaut ") + NF4.format(c.rate) + " " + plural(b)) + L(". Modifier"))}"><span class="chip" aria-hidden="true">${esc(c.sym)}</span><span class="t"><b>${esc(c.name)}</b><small>${esc(c.code)}${isB ? L(" · devise de référence") : ""}</small></span><span class="amt">${isB ? L("Référence") : esc(rt)}</span></button></li>`; }).join("")}</ul>
-    <button type="button" class="btn ghost" data-act="new-cur">${L("Ajouter une devise")}</button>`;
+    ${proLimit(`<button type="button" class="btn ghost" data-act="new-cur">${L("Ajouter une devise")}</button>`, L("Ajouter une devise"), "cur", S.meta.currencies.length, FREE.cur, L("devise"), L("devises"))}`;
 }
 const GRIP = `<svg viewBox="0 0 20 20"><circle cx="7" cy="5" r="1.6"/><circle cx="13" cy="5" r="1.6"/><circle cx="7" cy="10" r="1.6"/><circle cx="13" cy="10" r="1.6"/><circle cx="7" cy="15" r="1.6"/><circle cx="13" cy="15" r="1.6"/></svg>`;
 function vCategories() {
@@ -769,15 +772,15 @@ function vCategories() {
     <p class="hint">${L("Faites glisser la poignée ")}<span aria-hidden="true">⋮⋮</span>${L(" pour changer l'ordre des catégories : cet ordre est repris dans les listes de choix. Ouvrez une catégorie pour changer son icône, sa couleur dans les graphiques, lui ajouter des sous-catégories ou la fusionner avec une autre.")}</p>`;
 }
 function vApparence() {
-  const radio = (name, v, label, cur) => `<label><input type="radio" name="${name}" id="${name}-${v}" value="${v}" ${cur === v ? "checked" : ""}><span>${label}</span></label>`;
+  const radio = (name, v, label, cur) => `<label><input type="radio" name="${name}" id="${name}-${v}" value="${v}" ${cur === v ? "checked" : ""}><span>${label}</span></label>`, lockA = !isPro();
   return backLink("reglages") + `<form class="card" style="display:flex;flex-direction:column;gap:16px" onsubmit="return false">
     <fieldset><legend>${L("Langue")}</legend><div class="seg wide">${radio("plang", "fr", '<bdi lang="fr">Français</bdi>', LANG)}${radio("plang", "en", '<bdi lang="en">English</bdi>', LANG)}${radio("plang", "es", '<bdi lang="es">Español</bdi>', LANG)}${radio("plang", "ar", '<bdi lang="ar">العربية</bdi>', LANG)}</div>
       <small class="hint">${L("Le changement de langue recharge l'appli. Les noms que vous avez saisis (comptes, catégories, notes) ne sont pas traduits.")}</small></fieldset>
     <fieldset><legend>${L("Thème")}</legend><div class="seg wide">${radio("pmode", "auto", L("Automatique"), P.mode)}${radio("pmode", "light", L("Clair"), P.mode)}${radio("pmode", "dark", L("Sombre"), P.mode)}</div>
       <small class="hint">${L("Automatique suit le réglage de votre téléphone ou de l'application Claude.")}</small></fieldset>
-    <fieldset><legend>${L("Style")}</legend><div class="seg wide">${radio("pstyle", "classic", L("Classique"), P.style || "classic")}${radio("pstyle", "glass", L("Verre liquide"), P.style || "classic")}</div>
+    <fieldset ${lockA ? "disabled" : ""}><legend>${L("Style")}</legend><div class="seg wide">${radio("pstyle", "classic", L("Classique"), lockA ? "classic" : P.style || "classic")}${radio("pstyle", "glass", L("Verre liquide"), lockA ? "classic" : P.style || "classic")}</div>
       <small class="hint">${L("Verre liquide : panneaux translucides et flous sur un fond coloré.")}</small></fieldset>
-    <fieldset><legend>${L("Couleurs")}</legend><div class="swatches">${Object.entries(THEMES).map(([k, t]) => `<label><input type="radio" name="paccent" id="paccent-${k}" value="${k}" ${P.accent === k ? "checked" : ""}><span class="dot" style="--c:${t.l[0]}" aria-hidden="true"></span><span>${t.name}</span></label>`).join("")}</div></fieldset>
+    ${lockA ? `<button type="button" class="pro-lock" data-act="pro" data-why="theme"><span class="pl-t">${L("Débloquer le style et les couleurs")}</span><span class="pro-badge">Pro</span></button>` : ""}<fieldset ${lockA ? "disabled" : ""}><legend>${L("Couleurs")}</legend><div class="swatches">${Object.entries(THEMES).map(([k, t]) => `<label><input type="radio" name="paccent" id="paccent-${k}" value="${k}" ${(lockA ? "sapin" : P.accent) === k ? "checked" : ""}><span class="dot" style="--c:${t.l[0]}" aria-hidden="true"></span><span>${t.name}</span></label>`).join("")}</div></fieldset>
     <fieldset><legend>${L("Zoom")}</legend><label class="check"><input type="checkbox" id="pzoom" ${P.zoom ? "checked" : ""} aria-describedby="zoom-hint"><span>${L("Autoriser le zoom de toute la page")}</span></label>
       <small class="hint" id="zoom-hint" style="margin-top:0">${L("Désactivé, seuls les graphiques s'agrandissent (pincer, ou boutons + et −). Activez-le si vous avez besoin d'agrandir le texte. Dans l'application Claude, c'est elle qui décide du zoom de la page.")}</small></fieldset>
   </form>`;
@@ -804,7 +807,7 @@ function vDonnees() {
     </div>
     <h2 class="sec-h">${L("Importer et exporter")}</h2>
     <div class="card" style="display:flex;flex-direction:column;gap:10px">
-      <label class="filebtn"><input type="file" id="csv-file" accept=".csv,text/csv,text/plain"><span class="btn">${L("Importer un fichier CSV…")}</span></label><p class="hint">${L("Relevé bancaire, export Excel ou d'une autre appli : vous indiquerez ensuite à quoi correspond chaque colonne.")}</p>
+      ${proLock(`<label class="filebtn"><input type="file" id="csv-file" accept=".csv,text/csv,text/plain"><span class="btn">${L("Importer un fichier CSV…")}</span></label>`, L("Importer un fichier CSV…"), "csv")}<p class="hint">${L("Relevé bancaire, export Excel ou d'une autre appli : vous indiquerez ensuite à quoi correspond chaque colonne.")}</p>
       <button type="button" class="btn ghost" data-act="export">${L("Exporter les opérations (CSV pour Excel)")}</button>
     </div>
     ${demo ? "" : `<h2 class="sec-h">${L("Zone sensible")}</h2><button type="button" class="btn danger" data-act="reset">${L("Tout effacer")}</button>`}`;

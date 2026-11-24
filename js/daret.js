@@ -41,7 +41,7 @@ function darSection() {
   const list = DARETS();
   return `<h2 class="sec-h">${L("Daret")}</h2>
     ${list.length ? `<ul class="card rows">${list.map(darRow).join("")}</ul>` : `<p class="hint" style="margin:0 4px">${L("Une daret (tontine) : chaque membre verse la même somme à chaque tour, et chacun reçoit la cagnotte à son tour.")}</p>`}
-    <button type="button" class="btn ghost" data-act="dar-new">＋ ${L("Nouvelle daret")}</button>`;
+    ${proLock(`<button type="button" class="btn ghost" data-act="dar-new">＋ ${L("Nouvelle daret")}</button>`, "＋ " + L("Nouvelle daret"), "daret")}`;
 }
 
 /* ---------- écran d'une daret ---------- */
@@ -141,7 +141,7 @@ function darDueRow(x) {
 /* ---------- actions ---------- */
 function darAction(a, el) {
   const d = daret(el.dataset.id); if (!d && a !== "dar-new") return;
-  if (a === "dar-new") return openDaretEdit(null);
+  if (a === "dar-new") return needPro("daret") ? undefined : openDaretEdit(null);
   if (a === "dar-open") { darSel = d.id; if (location.hash === "#daret") render(); else location.hash = "daret"; return; }
   if (a === "dar-edit") return openDaretEdit(d);
   if (a === "dar-del") return darDelete(d);

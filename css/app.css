@@ -737,3 +737,23 @@ svg{direction:ltr}
 .dar-r .pend-act{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 .dar-got summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--ink-2)}
 .dar-gl{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+
+/* Floussi Pro */
+.pro-badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;background:linear-gradient(135deg,#eda100,#d97a00);color:#fff;font-size:11px;font-weight:800;letter-spacing:.04em;flex:none}
+.pro-lock{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:46px;padding:10px 14px;border-radius:12px;border:1.5px dashed color-mix(in srgb,#eda100 60%,var(--line));background:color-mix(in srgb,#eda100 6%,var(--surface));color:var(--ink);font-weight:600;text-align:start}
+.pro-lock .pl-t{flex:1;min-width:0}.pro-lock .pl-t small{display:block;font-weight:500;color:var(--muted);font-size:12px;margin-top:2px}
+.pro-why{margin:0;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,#eda100 12%,var(--surface));font-weight:600;font-size:14px}
+.pro-teaser{display:flex;flex-direction:column;gap:8px;border:1.5px dashed color-mix(in srgb,#eda100 60%,var(--line))}
+.pro-teaser .pt-h{display:flex;align-items:center;justify-content:space-between;gap:10px}.pro-teaser p{margin:0;color:var(--ink-2);font-size:14px}.pro-teaser .btn{align-self:flex-start}
+.pro-sheet{display:flex;flex-direction:column;gap:12px}
+.pro-lead{margin:0;color:var(--ink-2)}.pro-on{margin:0;font-weight:700;color:#1baf7a}
+.pro-list{display:flex;flex-direction:column;gap:10px;margin:0}
+.pro-list li{display:flex;gap:12px;align-items:flex-start}.pro-list .pi{flex:none;display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:color-mix(in srgb,#eda100 14%,var(--surface));font-size:16px;font-weight:800;color:#b26a00}
+.pro-list b{display:block;font-weight:600}.pro-list small{color:var(--muted);font-size:12.5px}
+.pro-free{margin:0;font-size:12.5px;color:var(--muted)}
+.pro-offers{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.pro-offer{display:flex;flex-direction:column;align-items:center;gap:2px;height:auto;min-height:56px;padding:10px 14px}.pro-offer b{font-weight:700}.pro-offer small{font-weight:500;font-size:12.5px;opacity:.85}
+.pro-rest{align-self:center;font-size:14px;padding:6px}
+.pro-legal{margin:0;font-size:11.5px;color:var(--muted);line-height:1.45}.pro-legal a{color:var(--accent)}
+.menu .menu-b{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;width:100%;padding:12px 0;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);font:inherit;text-align:start}
+.menu .menu-b b{font-weight:500;display:block}.menu .menu-b small{color:var(--muted);font-size:12px}

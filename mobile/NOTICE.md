@@ -77,6 +77,41 @@ Dans Xcode : cliquez sur **App** › onglet **Signing & Capabilities** › chois
 
 Les réglages nécessaires (dossier visible dans Fichiers, autorisation de l'appareil photo pour les tickets) sont ajoutés automatiquement par `scripts/configurer-natif.mjs`.
 
+## 7. Floussi Pro (abonnement)
+
+La version web reste entièrement gratuite. Dans les applis App Store et Google Play, le téléchargement est gratuit et **Floussi Pro** (abonnement annuel) débloque :
+comptes, devises et budgets illimités (version gratuite : 3 comptes, 2 devises, 1 budget), statistiques avancées (évolution du solde, par mois, analyse), daret, photo du ticket, répartition d'une dépense, étiquettes, prévisions de solde, bilan PDF, import CSV, style « verre liquide », couleurs et images de catégories.
+Restent gratuits : opérations illimitées, catégories, statistiques par catégorie, récurrentes, prêts et dettes, zakat, code et Face ID, sauvegardes. Une nouvelle installation gratuite démarre avec 3 comptes et 2 devises. Les données déjà saisies (par exemple après la fin d'un abonnement ou la restauration d'une sauvegarde) restent toujours visibles et utilisables ; seuls les ajouts au-delà des limites sont bloqués.
+
+L'achat passe par le module `@capgo/native-purchases` (licence MPL-2.0, utilisé sans modification) : StoreKit 2 sur iPhone, Google Play Billing sur Android. Pas de serveur : l'abonnement est vérifié sur le téléphone, et l'état est gardé pour fonctionner hors connexion (3 jours de tolérance après l'échéance).
+
+**Identifiants à créer exactement ainsi (ils sont dans `js/pro.js`) :**
+
+| Magasin | Où | Identifiant |
+|---|---|---|
+| App Store Connect | Votre appli › **Abonnements** › créer un groupe « Floussi Pro », puis un abonnement d'**1 an** | ID produit : `floussi_pro_annuel` |
+| Google Play Console | Votre appli › **Monétiser › Abonnements** › créer un abonnement, puis une **offre de base** renouvelée chaque année | ID produit : `floussi_pro` · ID de l'offre de base : `annuel` |
+
+| App Store Connect | Votre appli › **Achats intégrés** › type **Non consommable** | ID produit : `floussi_pro_a_vie` |
+| Google Play Console | Votre appli › **Monétiser › Produits intégrés à l'application** (produit ponctuel) | ID produit : `floussi_pro_a_vie` |
+
+**Essai gratuit de 14 jours** : sur l'abonnement, ajoutez une offre de lancement gratuite. Apple : fiche de l'abonnement › **Prix de l'abonnement › Offre de lancement › Gratuit, 2 semaines**. Google : dans l'offre de base `annuel`, **Ajouter une offre › Essai gratuit, 14 jours**. L'appli lit cette offre dans le magasin et affiche alors « Essayer gratuitement pendant 14 jours, puis 4,99 € par an » ; sans offre, elle affiche simplement « S'abonner ». L'achat à vie n'apparaît que si le produit `floussi_pro_a_vie` existe.
+
+Prix conseillés : **4,99 € par an**, et **14,99 € à vie** ; Apple et Google proposent ensuite le prix équivalent dans chaque pays (vous pouvez l'ajuster pays par pays). Le prix affiché dans l'appli vient toujours du magasin.
+
+**À faire une seule fois :**
+1. **Apple** : App Store Connect › **Accords, taxes et banques** › signer l'accord « Applications payantes » et renseigner votre compte bancaire et vos informations fiscales. Sans cela, les achats ne fonctionnent pas.
+2. **Apple** : s'inscrire au **Small Business Program** (developer.apple.com/app-store/small-business-program) : la commission d'Apple passe à 15 %.
+3. **Apple** : dans Xcode, **Signing & Capabilities › + Capability › In-App Purchase**.
+4. **Google** : Play Console › **Configuration › Profil de paiement** (compte marchand), avant de créer l'abonnement.
+5. Pour la fiche de l'abonnement, Apple demande une capture de l'écran Pro (Réglages › Floussi Pro) et une courte description.
+
+**Tester sans payer :**
+- iPhone : dans App Store Connect › **Utilisateurs et accès › Sandbox**, créez un compte de test ; sur l'iPhone, Réglages › App Store › **Compte sandbox**. Les achats de test ne sont pas débités, et un abonnement annuel se renouvelle toutes les heures environ.
+- Android : Play Console › **Configuration › Test de licence**, ajoutez votre adresse Gmail ; l'appli doit être publiée au moins en **test interne**.
+
+Points vérifiés par Apple à la relecture, déjà présents dans l'écran Pro : bouton **Restaurer mes achats**, prix et durée affichés, renouvellement automatique expliqué, liens vers les **Conditions d'utilisation** (contrat standard d'Apple) et la **politique de confidentialité**.
+
 ## Contenu du dossier
 
 - `www/` : copie de l'application web, créée par `npm run copier-web` (ne pas modifier à la main).

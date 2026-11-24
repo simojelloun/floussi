@@ -128,9 +128,13 @@ document.addEventListener("click", e => {
   }
   else if (a === "cat-detail") openCatDetail(id);
   else if (a === "fs") fsOpen(el.dataset.k);
+  else if (a === "pro") openPro(el.dataset.why);
+  else if (a === "pro-buy") proBuy(el.dataset.plan);
+  else if (a === "pro-restore") proRestore();
+  else if (a === "pro-manage") proManage();
   else if (a === "fs-close") fsClose();
   else if (a === "zoom") { const z = el.parentElement.previousElementSibling; if (!z || !z.classList.contains("zoomable")) return; const r = z.getBoundingClientRect(), s = zGet(z).s; el.dataset.z === "reset" ? zSet(z, 1, 0, 0) : zAround(z, el.dataset.z === "in" ? s * 1.5 : s / 1.5, r.width / 2, r.height / 2); }
-  else if (a === "new-acc") openAcc();
+  else if (a === "new-acc") { if (!overLimit("acc", S.meta.accounts.length)) openAcc(); }
   else if (a === "edit-acc") openAcc(acc(id));
   else if (a === "del-acc") {
     if (allTx().some(t => t.acc === id || t.to === id) || S.meta.recurring.some(r => r.acc === id || r.to === id)) return err(L("Ce compte est utilisé par des opérations ou des récurrences. Supprimez-les ou déplacez-les d'abord."));
@@ -140,10 +144,10 @@ document.addEventListener("click", e => {
   else if (a === "new-subcat") { const p = cat(id); if (p) openCat(null, p.kind, p.id); }
   else if (a === "edit-cat") openCat(cat(id));
   else if (a === "del-cat") { const c = cat(id); if (c) openCatDelete(c); }
-  else if (a === "new-budget") { if (!cats("dep").length) return toast(L("Créez d'abord une catégorie de dépense.")); openBudget(); }
+  else if (a === "new-budget") { if (overLimit("bud", S.meta.budgets.length)) return; if (!cats("dep").length) return toast(L("Créez d'abord une catégorie de dépense.")); openBudget(); }
   else if (a === "edit-budget") openBudget(S.meta.budgets.find(b => b.id === id));
   else if (a === "del-budget") confirmSheet(L("Supprimer ce budget ?"), L("Supprimer"), () => { S.meta.budgets = S.meta.budgets.filter(b => b.id !== id); touch("meta"); render(); toastDel(L("Budget supprimé")); });
-  else if (a === "new-cur") openCur();
+  else if (a === "new-cur") { if (!overLimit("cur", S.meta.currencies.length)) openCur(); }
   else if (a === "edit-cur") openCur(curOf(el.dataset.c));
   else if (a === "del-cur") {
     const code = el.dataset.c; if (curUsed(code)) return err(L("Cette devise est utilisée par un compte, un budget ou un prêt."));
@@ -155,12 +159,12 @@ document.addEventListener("click", e => {
   else if (a === "daily-skip") { P.skipDay = today(); savePrefs(); render(); $("#title").focus(); }
   else if (a === "snap-restore") { const d = el.dataset.d; IDB.get("snap-" + d).then(data => { if (data) restoreBackup({data, exportedAt: d + "T12:00:00"}); else toast(L("Cette copie est introuvable.")); }); }
   else if (a === "start") {
-    demo = false; S = {meta: freshMeta(), months: {}}; localSave(); push("meta"); setSync(col ? "cloud" : "local");
+    demo = false; S = {meta: startMeta(), months: {}}; localSave(); push("meta"); setSync(col ? "cloud" : "local");
     month = today().slice(0, 7); setPreset("month"); statAccs = null; location.hash = "comptes"; tab = "comptes"; render(); $("#title").focus();
     toast(L("Indiquez le solde de départ de chaque compte, puis ajoutez vos opérations."));
   }
   else if (a === "reset") confirmSheet(L("Effacer tous les comptes, opérations, prêts, récurrences et budgets ? Cette action est définitive. Pensez à enregistrer une sauvegarde avant."), L("Tout effacer"), () => {
-    const ids = Object.keys(S.months).map(m => "tx-" + m); ids.forEach(i => getDoc(i).items = []); S.meta = freshMeta(); touch("meta", ...ids); render(); toastDel(L("Données effacées"));
+    const ids = Object.keys(S.months).map(m => "tx-" + m); ids.forEach(i => getDoc(i).items = []); S.meta = startMeta(); touch("meta", ...ids); render(); toastDel(L("Données effacées"));
   });
 });
 document.addEventListener("toggle", e => { const k = e.target.dataset && e.target.dataset.fold; if (!k) return; P.fold = P.fold || {}; P.fold[k] = e.target.open; savePrefs(); }, true);
