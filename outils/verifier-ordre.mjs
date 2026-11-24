@@ -2,7 +2,7 @@
 // le code exécuté au chargement d'un fichier (hors corps de fonctions) ne doit utiliser
 // que des noms déclarés dans ce fichier ou dans les fichiers chargés AVANT lui.
 // Usage : node outils/verifier-ordre.mjs   (renvoie un code d'erreur si un problème est trouvé)
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import * as acorn from "acorn";
@@ -11,6 +11,11 @@ import * as walk from "acorn-walk";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const html = readFileSync(join(root, "index.html"), "utf8");
 const files = [...html.matchAll(/<script src="(js\/[^"]+)"><\/script>/g)].map(m => m[1]);
+// chaque fichier du dossier js/ doit être chargé par index.html, et chaque fichier chargé doit exister
+// (cas typique : un nouveau fichier envoyé sur GitHub sans la nouvelle version d'index.html)
+for (const f of readdirSync(join(root, "js")).filter(n => n.endsWith(".js")).map(n => "js/" + n))
+  if (!files.includes(f)) { console.error(`✗ ${f} existe mais n'est pas chargé par index.html : index.html n'est sans doute pas à jour`); process.exitCode = 1; }
+for (const f of files) if (!existsSync(join(root, f))) { console.error(`✗ index.html charge ${f}, mais ce fichier est absent`); process.exit(1); }
 const declaredIn = new Map(); // nom -> index du fichier
 const parsed = files.map((f, i) => {
   const ast = acorn.parse(readFileSync(join(root, f), "utf8"), { ecmaVersion: "latest", sourceType: "script" });

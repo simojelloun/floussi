@@ -3,6 +3,8 @@ const { defineConfig, devices } = require("@playwright/test");
 module.exports = defineConfig({
   testDir: "tests",
   timeout: 60000,
+  // sur GitHub : on s'arrête après 5 échecs, pour ne pas faire tourner la vérification pendant des dizaines de minutes
+  maxFailures: process.env.CI ? 5 : 0,
   fullyParallel: true,
   reporter: [["list"]],
   use: { baseURL: "http://localhost:8181", ...devices["iPhone 13"], browserName: "chromium", locale: "fr-FR", timezoneId: "Africa/Casablanca" },

@@ -13,13 +13,13 @@ const THEMES = {
   ardoise: {name: L("Ardoise"), l: ["#3C4B59", "#1D252D", "#EEF0F2"], d: ["#A8B8C8", "#242C35", "#101317", "#191E24"]}
 };
 function applyPrefs() {
-  const root = document.documentElement, t = THEMES[P.accent] || THEMES.sapin;
+  const pro = typeof isPro !== "function" || isPro(), root = document.documentElement, t = (pro && THEMES[P.accent]) || THEMES.sapin;
   if (P.mode === "light" || P.mode === "dark") root.setAttribute("data-mode", P.mode); else root.removeAttribute("data-mode");
   const dk = `--accent:${t.d[0]};--hero:${t.d[1]};--bg:${t.d[2]};--surface:${t.d[3]};--accent-ink:#0B1210`;
   $("#theme-style").textContent = `:root{--accent:${t.l[0]};--hero:${t.l[1]};--bg:${t.l[2]};--accent-ink:#FFFFFF}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]):not([data-mode="light"]){${dk}}}
 :root[data-theme="dark"]:not([data-mode="light"]),:root[data-mode="dark"]{${dk}}`;
-  if (P.style === "glass") root.setAttribute("data-style", "glass"); else root.removeAttribute("data-style");
+  if (pro && P.style === "glass") root.setAttribute("data-style", "glass"); else root.removeAttribute("data-style");
   root.classList.toggle("nozoom", !P.zoom);
   $("#vp").setAttribute("content", P.zoom ? "width=device-width, initial-scale=1" : "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no");
 }

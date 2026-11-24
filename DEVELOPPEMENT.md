@@ -29,6 +29,7 @@ Les fichiers `js/` sont chargés **dans l'ordre de `index.html`** et partagent l
 | `preferences.js` | réglages de l'appareil (`P`, clé `carnet-prefs`) : thème, langue, couleurs |
 | `icones.js` | icônes au trait des catégories (données) |
 | `devises-categories.js` | couleurs et groupes d'icônes |
+| `pro.js` | abonnement Floussi Pro (appli installée ; sur le web tout est gratuit) |
 | `donnees.js` | **structure des données `S`, migration, enregistrement** (localStorage, IndexedDB, fichier natif) |
 | `calculs.js` | soldes, flux, budgets, prêts |
 | `recurrentes.js` | échéances, payée / impayée |

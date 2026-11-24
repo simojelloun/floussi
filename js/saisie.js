@@ -11,6 +11,7 @@ function openSheet(html, submit, focusSel) {
 }
 function closeSheet() {
   if ($("#wrap").hidden) return;
+  if (typeof proRestoreSheet === "function" && proRestoreSheet()) return;
   $("#wrap").hidden = true; $("#sheet").innerHTML = ""; $("#app").inert = false; onSubmit = null; draft = null; moveCtx = null; catDraft = null; impCtx = null;
   const el = opener && document.querySelector(opener); (el || $("#title")).focus(); opener = null;
 }
@@ -96,11 +97,11 @@ function renderTx(focusId) {
     ${!isRec && d.t !== "vir" ? `<div class="sugs" id="f-sug" role="group" aria-label="${esc(L("Libellés déjà utilisés"))}" hidden></div>` : ""}
     ${repDetail}
     ${!isRec ? `<details class="more" id="f-more" ${moreOpen ? "open" : ""}><summary>${L("Plus d'options")}<small>${L("Étiquettes, photo du ticket, répartition, modèle")}</small></summary><div class="more-b">
-      ${d.t !== "vir" ? `<label class="check switch"><input type="checkbox" id="f-split" ${d.split ? "checked" : ""}><span>${L("Répartir sur plusieurs catégories ou comptes")}</span></label>` : ""}
-      <div class="f"><label for="f-tags">${L("Étiquettes")}</label><input type="text" id="f-tags" maxlength="120" placeholder="${esc(L("Facultatif, par ex. Vacances, Travaux"))}" value="${esc(d.tagsS || "")}" autocomplete="off" aria-describedby="tags-hint">
+      ${d.t !== "vir" ? (r => d.split ? r : proLock(r, L("Répartir sur plusieurs catégories ou comptes"), "split"))(`<label class="check switch"><input type="checkbox" id="f-split" ${d.split ? "checked" : ""}><span>${L("Répartir sur plusieurs catégories ou comptes")}</span></label>`) : ""}
+      ${(r => (d.tagsS || "").trim() ? r : proLock(r, L("Étiquettes"), "tags"))(`<div class="f"><label for="f-tags">${L("Étiquettes")}</label><input type="text" id="f-tags" maxlength="120" placeholder="${esc(L("Facultatif, par ex. Vacances, Travaux"))}" value="${esc(d.tagsS || "")}" autocomplete="off" aria-describedby="tags-hint">
         <small class="hint" id="tags-hint" style="margin:0">${L("Séparez les étiquettes par des virgules. Elles regroupent des dépenses de catégories différentes, par exemple tout un voyage.")}</small>
-        ${known.length ? `<div class="filters scroll" role="group" aria-label="${esc(L("Étiquettes existantes"))}">${known.map(g => `<button type="button" class="pill-btn" data-act="tag-add" data-v="${esc(g)}" aria-label="${esc(L("Ajouter l'étiquette") + " " + g)}">+ #${esc(g)}</button>`).join("")}</div>` : ""}</div>
-      <div class="f"><span>${L("Photo du ticket")}</span><div id="ph-box">${phBox(d)}</div></div>
+        ${known.length ? `<div class="filters scroll" role="group" aria-label="${esc(L("Étiquettes existantes"))}">${known.map(g => `<button type="button" class="pill-btn" data-act="tag-add" data-v="${esc(g)}" aria-label="${esc(L("Ajouter l'étiquette") + " " + g)}">+ #${esc(g)}</button>`).join("")}</div>` : ""}</div>`)}
+      ${(r => d.photo ? r : proLock(r, "📷 " + L("Ajouter une photo du ticket"), "photo"))(`<div class="f"><span>${L("Photo du ticket")}</span><div id="ph-box">${phBox(d)}</div></div>`)}
       ${!SPL ? `<button type="button" class="link tpl-save" id="f-tpl" data-act="tpl-save">☆ ${L("Enregistrer comme modèle")}</button>` : ""}
       ${!d.id ? `<small class="hint" style="margin:0">${L("Pour un prêt ou un emprunt, utilisez l'onglet ")}<a class="link" href="#prets">${L("Prêts")}</a>${L(" : les remboursements y sont suivis.")}</small>` : ""}
     </div></details>` : ""}
@@ -350,7 +351,7 @@ function openCat(c, kind, parentId) {
     ${hasKids ? `<small class="hint" id="par-hint" style="margin:0">${L("Cette catégorie a des sous-catégories : elle reste une catégorie principale.")}</small>` : ""}
     <fieldset><legend>${L("Couleur dans les graphiques")}</legend><div class="swatches">${COLORS.map(([h, n]) => `<label><input type="radio" name="ccolor" value="${h}" ${catDraft.color === h ? "checked" : ""}><span class="dot" style="--c:${h}" aria-hidden="true"></span><span class="sr">${n}</span></label>`).join("")}</div></fieldset>
     <fieldset><legend>${L("Icône")}</legend><label class="f" style="margin-bottom:6px"><span class="sr">${L("Rechercher une icône")}</span><input type="search" id="icon-q" placeholder="${esc(L("Rechercher une icône"))}" autocomplete="off"></label><p class="sr" id="icon-n" aria-live="polite"></p><div class="icons" id="icons">${icons}<label data-n="image"><input type="radio" name="cicon" id="cicon-img" value="img" ${catDraft.icon === "img" ? "checked" : ""} ${catDraft.img ? "" : "disabled"}><span aria-hidden="true" id="img-prev">${catDraft.img ? `<img src="${esc(catDraft.img)}" alt="">` : "🖼️"}</span><span class="sr">${L("Image personnelle")}</span></label></div></fieldset>
-    <label class="filebtn"><input type="file" id="c-img" accept="image/*"><span class="btn ghost">${L("Choisir une image (photo, logo)…")}</span></label>
+    ${(r => catDraft.img ? r : proLock(r, L("Choisir une image (photo, logo)…"), "img"))(`<label class="filebtn"><input type="file" id="c-img" accept="image/*"><span class="btn ghost">${L("Choisir une image (photo, logo)…")}</span></label>`)}
     <div class="err" id="f-err" role="alert"></div>
     <div class="actions">${c ? `<button type="button" class="btn danger" data-act="del-cat" data-id="${esc(c.id)}">${L("Supprimer")}</button>` : ""}<button type="submit" class="btn">${L("Enregistrer")}</button></div>
     ${c && !c.parent ? `<button type="button" class="btn ghost" data-act="new-subcat" data-id="${esc(c.id)}">${L("Ajouter une sous-catégorie à ")}${esc(c.name)}</button>` : ""}</form>`, () => {

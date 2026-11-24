@@ -23,6 +23,7 @@ function forecast(hz) {
 }
 function fcBlock() {
   if (!S.meta.accounts.length) return "";
+  if (!isPro()) return proTeaser(L("Prévisions de solde"), L("Voyez votre solde prévu à la fin du mois, avec une alerte avant le découvert."), "fc");
   const t = today(), hz = fcH === "eom" ? lastDay(t.slice(0, 7)) : ymd(new Date(Date.now() + 30 * 864e5)), f = forecast(hz), curs = usedCurs();
   const tot = (b, c) => S.meta.accounts.filter(a => a.cur === c).reduce((x, a) => x + b[a.id], 0);
   const rows = curs.map(c => { const now = tot(f.start, c), end = tot(f.end, c), d = end - now;
