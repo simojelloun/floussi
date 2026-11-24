@@ -18,7 +18,7 @@ function render() {
   if (loading) { v.innerHTML = `<p class="empty">${L("Chargement de vos comptes…")}</p>`; return; }
   const fb = $("#fs-b"), inFs = !!fsKey && $("#fs").contains(document.activeElement), ftop = fb ? fb.scrollTop : 0;
   const k = v.contains(document.activeElement) || inFs ? focusKey(document.activeElement) : null, top = v.scrollTop;
-  v.innerHTML = VIEWS[tab](); enhanceSelects(v); fsSync();
+  v.innerHTML = VIEWS[tab](); enhanceSelects(v); animNumbers(v); fsSync();
   v.scrollTop = top; if (fsKey) fb.scrollTop = ftop;
   if (k) { const el = (fsKey && $("#fs").querySelector(k)) || v.querySelector(k); if (el) el.focus({preventScroll: true}); else (fsKey ? $("#fs-close") : $("#title")).focus({preventScroll: true}); }
 }

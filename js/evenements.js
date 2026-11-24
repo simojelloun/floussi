@@ -106,6 +106,9 @@ document.addEventListener("click", e => {
   else if (a === "stat-accs") openStatAccs();
   else if (a === "sa-pick") { const c = el.dataset.c; document.querySelectorAll('input[name="sa"]').forEach(x => x.checked = c === "ALL" || acc(x.value).cur === c); announce(c === "ALL" ? L("Tous les comptes cochés") : L("Comptes en ") + plural(c) + L(" cochés")); }
   else if (a === "catview") { catView = el.dataset.v; render(); }
+  else if (a === "balmode") { balMode = el.dataset.v; render(); }
+  else if (a === "bilmode") { bilMode = el.dataset.v; render(); }
+  else if (a === "bil-year") { const ny = bilY + (+el.dataset.n); if (ny > +today().slice(0, 4)) return; bilY = ny; render(); announce(String(bilY)); }
   else if (a === "catkind") { catKind = el.dataset.v; render(); }
   else if (a === "grip") { if (!dgBlock) openCatOrder(id); }
   else if (a === "grip-acc") { if (!dgBlock) openAccOrder(id); }
@@ -126,7 +129,7 @@ document.addEventListener("click", e => {
     const nb = $("#sheet").querySelector(`[data-act="mv-cat"][data-v="${v}"]:not([disabled])`) || $("#sheet").querySelector('[data-act="mv-cat"]:not([disabled])'); if (nb) nb.focus();
     announce(c.name + " " + L("en position") + " " + (j + 1) + " / " + sib.length);
   }
-  else if (a === "cat-detail") openCatDetail(id);
+  else if (a === "cat-detail") { if (el.dataset.k) statKind = el.dataset.k; openCatDetail(id); }
   else if (a === "fs") fsOpen(el.dataset.k);
   else if (a === "pro") openPro(el.dataset.why);
   else if (a === "pro-buy") proBuy(el.dataset.plan);

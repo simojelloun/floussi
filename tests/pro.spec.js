@@ -165,6 +165,12 @@ test("version gratuite : statistiques avancées et daret réservés à Pro, zaka
     await page.click(`[data-act="statview"][data-v="${v}"]`);
     await expect(page.locator("#view .pro-teaser")).toContainText("statistiques avancées");
   }
+  // fiche d'une catégorie : la répartition reste gratuite, l'évolution sur 12 mois est Pro
+  await page.click('[data-act="statview"][data-v="cat"]');
+  await page.locator('.rank[data-act="cat-detail"]').first().click();
+  await expect(page.locator('#sheet .pro-lock')).toContainText("Évolution sur 12 mois");
+  await expect(page.locator("#sheet svg.ce")).toHaveCount(0);
+  await page.keyboard.press("Escape");
   await page.evaluate(() => { location.hash = "prets"; });
   await expect(page.locator('#view [data-why="daret"]')).toBeVisible();
   await expect(page.locator('#view [data-act="dar-new"]')).toHaveCount(0);

@@ -137,6 +137,30 @@ function remindLate() {
   const n = overdue().length; if (!n) return;
   P.lateSeen = today(); savePrefs(); toast(L("Rappel : ") + plur(n, L("échéance dépassée"), L("échéances dépassées")) + L(", à voir sur l'Accueil."));
 }
+/* période précédente de même durée (mois entiers : les mois d'avant) */
+function prevRange(r) {
+  if (r.from.slice(8) === "01" && r.to === lastDay(r.to.slice(0, 7))) {
+    let n = 0; for (let m = r.from.slice(0, 7); m <= r.to.slice(0, 7); m = shiftMonth(m, 1)) n++;
+    const f = shiftMonth(r.from.slice(0, 7), -n); return {from: f + "-01", to: lastDay(shiftMonth(r.to.slice(0, 7), -n))};
+  }
+  const days = Math.round((new Date(r.to + "T12:00:00") - new Date(r.from + "T12:00:00")) / 864e5) + 1, to = addDays(r.from, -1);
+  return {from: addDays(to, -(days - 1)), to};
+}
+/* chiffres qui défilent jusqu'à leur valeur (une fois par changement de vue) */
+let animKey = "";
+function animNumbers(root) {
+  const key = tab + "|" + (tab === "stats" ? [statView, catView, statKind, range.from, range.to, JSON.stringify(statAccs)].join("|") : "");
+  const fresh = key !== animKey; animKey = key;
+  root.classList.toggle("still", !fresh);
+  const fsb = document.getElementById("fs"); if (fsb) fsb.classList.toggle("still", !fresh);
+  if (!fresh || !matchMedia("(prefers-reduced-motion: no-preference)").matches) return;
+  root.querySelectorAll("[data-count]").forEach(el => {
+    const target = +el.dataset.count, unit = el.querySelector("span"), sign = el.dataset.sign, t0 = performance.now(), D = 700;
+    const step = now => { const k = Math.min(1, (now - t0) / D), e = 1 - Math.pow(1 - k, 3), v = Math.round(target * e);
+      if (!el.isConnected) return; el.firstChild.nodeValue = (sign ? (v < 0 ? "−" : "+") : "") + NF.format(Math.abs(v) / 100); if (k < 1) requestAnimationFrame(step); };
+    if (el.firstChild && el.firstChild.nodeType === 3 && unit) requestAnimationFrame(step);
+  });
+}
 const addDays = (d, n) => { const [y, m, x] = d.split("-").map(Number); return ymd(new Date(y, m - 1, x + n)); };
 /* alerte de budget au moment d'enregistrer */
 const budSnap = ym => S.meta.budgets.map(b => budgetState(b, ym).r);
@@ -148,7 +172,7 @@ function budAlert(prev, ym) {
   return msgs.length ? " ⚠ " + msgs.join(" · ") : "";
 }
 /* bilan mensuel */
-let bilM = today().slice(0, 7);
+let bilM = today().slice(0, 7), bilMode = "m", bilY = +today().slice(0, 4), balMode = "acc";
 function balAt(a, date) {
   let b = balance(a);
   for (const t of allTx()) { if (t.date <= date) continue; if (t.acc === a.id) b -= isIn(t) ? t.amt : -t.amt; if (t.t === "vir" && t.to === a.id) b -= (t.amtTo ?? t.amt); }
@@ -162,6 +186,10 @@ function tagTotals(from, to, F) {
 }
 function vBilan() {
   if (!isPro()) return backLink("stats") + proTeaser(L("Bilan du mois en PDF"), L("Un résumé clair du mois, à imprimer ou à garder en PDF."), "bilan");
+  const modeSeg = `<div class="seg wide noprint" role="group" aria-label="${esc(L("Bilan"))}"><button type="button" data-act="bilmode" data-v="m" aria-pressed="${bilMode !== "y"}">${L("Mois")}</button><button type="button" data-act="bilmode" data-v="y" aria-pressed="${bilMode === "y"}">${L("Année")}</button></div>`;
+  const printBtn = `<div class="actions noprint"><button type="button" class="btn" data-act="print"><span aria-hidden="true">🖨</span> ${L("Imprimer ou enregistrer en PDF")}</button></div>
+    <p class="hint noprint">${L("Dans la fenêtre d'impression, choisissez « Enregistrer au format PDF ». Sur iPhone : touchez Imprimer, puis le bouton Partager pour l'enregistrer dans Fichiers ou l'envoyer.")}</p>`;
+  if (bilMode === "y") { const F = statF(); return backLink("stats") + modeSeg + vBilanYear(F, F.out) + printBtn; }
   const F = statF(), dc = F.out, ym = bilM, from = ym + "-01", to = lastDay(ym), f = flowsBetween(from, to, F), pf = flowsBetween(shiftMonth(ym, -1) + "-01", lastDay(shiftMonth(ym, -1)), F);
   const net = f.rev - f.dep, rate = f.rev > 0 ? Math.round(net / f.rev * 100) : null;
   const pct = (a, b) => b ? Math.round((a - b) / b * 100) : null, dDep = pct(f.dep, pf.dep), dRev = pct(f.rev, pf.rev);
@@ -172,7 +200,7 @@ function vBilan() {
   const accs = accSorted().filter(a => F.has(a));
   const evo = (v, good) => v == null ? "" : `<small class="evo ${(v > 0) === good ? "pos" : v === 0 ? "" : "neg"}">${v > 0 ? "+" : ""}${v} % ${L("vs mois précédent")}</small>`;
   const isCur = ym === today().slice(0, 7);
-  return backLink("stats") + `<div class="bar-line nowrap noprint"><button type="button" class="navb" data-act="bil-month" data-n="-1" aria-label="${esc(L("Mois précédent"))}">‹</button>
+  return backLink("stats") + modeSeg + `<div class="bar-line nowrap noprint"><button type="button" class="navb" data-act="bil-month" data-n="-1" aria-label="${esc(L("Mois précédent"))}">‹</button>
       <div class="period static"><b>${esc(cap1(monthName(ym)))}</b><small>${esc(statAccLabel(F))} · ${esc(sym(dc))}</small></div>
       <button type="button" class="navb" data-act="bil-month" data-n="1" aria-label="${esc(L("Mois suivant"))}" ${isCur ? "disabled" : ""}>›</button></div>
     <div class="bilan">
@@ -193,6 +221,102 @@ function vBilan() {
     <div class="actions noprint"><button type="button" class="btn" data-act="print"><span aria-hidden="true">🖨</span> ${L("Imprimer ou enregistrer en PDF")}</button></div>
     <p class="hint noprint">${L("Dans la fenêtre d'impression, choisissez « Enregistrer au format PDF ». Sur iPhone : touchez Imprimer, puis le bouton Partager pour l'enregistrer dans Fichiers ou l'envoyer.")}</p>`;
 }
+/* catégories de dépenses qui ont le plus augmenté ou baissé par rapport à la période d'avant */
+function changesBlock(f, pf, dc, k) {
+  k = k || "dep";
+  const ids = new Set([...Object.keys(f.byTop[k]), ...Object.keys(pf.byTop[k])]);
+  const rows = [...ids].map(c => { const now = Math.max(0, f.byTop[k][c] || 0), was = Math.max(0, pf.byTop[k][c] || 0); return {c, now, was, d: now - was}; })
+    .filter(r => Math.abs(r.d) >= 100).sort((a, b) => Math.abs(b.d) - Math.abs(a.d)).slice(0, 6);
+  if (!rows.length) return "";
+  const mx = Math.max(...rows.map(r => Math.abs(r.d))), up = rows.filter(r => r.d > 0)[0], down = rows.filter(r => r.d < 0)[0];
+  const pc = r => r.was ? Math.round(r.d / r.was * 100) : null;
+  const pcT = r => { const p = pc(r); return p == null ? L("nouveau") : (p > 0 ? "+" : "−") + Math.abs(p) + " %"; };
+  const good = r => k === "dep" ? r.d < 0 : r.d > 0;
+  const sum = [up && `${L("Plus forte hausse :")} <b>${esc(catName(up.c))}</b> (${pcT(up)})`, down && `${L("plus forte baisse :")} <b>${esc(catName(down.c))}</b> (${pcT(down)})`].filter(Boolean).join(" · ");
+  return `<h2 class="sec-h">${L("Ce qui a changé")}</h2>
+    <div class="card"><ul class="rows chg-list">${rows.map((r, i) => { const cc = cat(r.c);
+      return `<li><button type="button" class="chg" data-act="cat-detail" data-k="${k}" data-id="${esc(r.c)}" style="--cc:${esc(cc?.color || "var(--s2)")};--i:${i}" aria-label="${esc(catName(r.c) + " : " + say(r.now, dc) + ", " + L("avant") + " " + say(r.was, dc) + ", " + pcT(r))}">
+        ${chipHtml(cc)}<span class="chg-t"><b>${esc(catName(r.c))}</b><small class="num">${fmt(r.was, dc)} → ${fmt(r.now, dc)}</small></span>
+        <span class="chg-v"><span class="pct ${good(r) ? "good" : "bad"}">${r.d > 0 ? "▲" : "▼"} ${pcT(r).replace(/^[+−]/, "")}</span><small class="num">${r.d > 0 ? "+" : "−"}${fmt(Math.abs(r.d), dc)}</small></span>
+        <span class="dv" aria-hidden="true"><i class="${r.d > 0 ? "up" : "down"} ${good(r) ? "good" : "bad"}" style="--w:${Math.max(3, Math.abs(r.d) / mx * 50).toFixed(1)}%"></i></span></button></li>`; }).join("")}</ul>
+      <small class="hint">${sum}. ${L("Touchez une catégorie pour voir ses opérations.")}</small></div>`;
+}
+/* évolution d'une catégorie sur 12 mois (fiche d'une catégorie) */
+function catEvolution(id, kind, F) {
+  const dc = F.out, t0 = today().slice(0, 7), endM = range.to.slice(0, 7) < t0 ? range.to.slice(0, 7) : t0;
+  const ms = []; for (let i = 11; i >= 0; i--) ms.push(shiftMonth(endM, -i));
+  const vals = ms.map(m => { const fl = flowsBetween(m + "-01", lastDay(m), F); return Math.max(0, fl.byTop[kind][id] || 0); });
+  if (!vals.some(Boolean)) return "";
+  const used = vals.filter(Boolean), avg = Math.round(vals.reduce((a, b) => a + b, 0) / Math.max(1, vals.findIndex(Boolean) >= 0 ? 12 - vals.findIndex(Boolean) : 12));
+  const max = niceMax(Math.max(...vals)), X0 = 34, W = 300, Y0 = 14, H = 96, gw = W / 12, bw = Math.min(16, gw - 6), y = v => Y0 + H - v / max * H, col = esc(cat(id)?.color || "var(--s2)");
+  const inR = m => m >= range.from.slice(0, 7) && m <= range.to.slice(0, 7), hiI = vals.indexOf(Math.max(...vals));
+  const l3 = vals.slice(-3).reduce((a, b) => a + b, 0), p3 = vals.slice(-6, -3).reduce((a, b) => a + b, 0), tr = p3 ? Math.round((l3 - p3) / p3 * 100) : null;
+  const short = m => new Intl.DateTimeFormat(LOCALE, {month: "narrow"}).format(new Date(+m.slice(0, 4), +m.slice(5) - 1, 1));
+  const lab = i => cap1(monthName(ms[i])) + " : " + fmt(vals[i], dc);
+  const svg = `<svg class="chart ce" viewBox="0 0 340 ${H + 34}" aria-hidden="true"><defs><linearGradient id="gCe" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:${col}"/><stop offset="1" style="stop-color:${col};stop-opacity:.5"/></linearGradient></defs>
+    ${[0, .5, 1].map(k => `<line class="grid" x1="${X0}" x2="${X0 + W}" y1="${y(max * k)}" y2="${y(max * k)}"/><text x="${X0 - 5}" y="${y(max * k) + 3}" text-anchor="end">${compact(max * k)}</text>`).join("")}
+    ${vals.map((v, i) => { const gx = X0 + i * gw; return `<g class="ceb${inR(ms[i]) ? " in" : ""}" data-l="${esc(lab(i))}"><rect x="${gx}" y="${Y0 - 8}" width="${gw}" height="${H + 30}" fill="transparent"/><path class="bar" style="--i:${i}" d="${barPath(gx + (gw - bw) / 2, y(v), bw, v / max * H)}" fill="url(#gCe)"/>${i === hiI ? `<text class="ce-hi" x="${(gx + gw / 2).toFixed(1)}" y="${(y(v) - 4).toFixed(1)}" text-anchor="middle">${compact(v)}</text>` : ""}<text x="${(gx + gw / 2).toFixed(1)}" y="${Y0 + H + 16}" text-anchor="middle">${esc(short(ms[i]))}</text></g>`; }).join("")}
+    <line class="avg" x1="${X0}" x2="${X0 + W}" y1="${y(avg).toFixed(1)}" y2="${y(avg).toFixed(1)}"/>
+  </svg>`;
+  return `<h3 class="day" style="padding-top:0"><span>${L("Évolution sur 12 mois")}</span></h3>
+    <div class="card ce-card"><p class="sr">${ms.map((m, i) => lab(i)).join(". ")}.</p><div class="cap ce-cap" aria-hidden="true"><span id="ce-l">${esc(cap1(monthName(ms[11])))}</span><b class="num" id="ce-v">${fmt(vals[11], dc)}</b></div>${svg}
+    <dl class="kv"><div><dt><span class="avg-k" aria-hidden="true"></span>${L("Moyenne par mois")}</dt><dd>${fmt(avg, dc)}</dd></div><div><dt>${L("Mois le plus élevé")}</dt><dd>${esc(cap1(monthName(ms[hiI])))} · ${fmt(vals[hiI], dc)}</dd></div>
+    ${tr != null ? `<div><dt>${L("3 derniers mois, par rapport aux 3 d'avant")}</dt><dd><span class="pct ${(tr > 0) === (kind === "dep") ? "bad" : tr ? "good" : ""}">${tr > 0 ? "▲" : tr < 0 ? "▼" : "="} ${Math.abs(tr)} %</span></dd></div>` : ""}</dl>
+    <small class="hint">${L("Les mois de la période choisie sont en couleur pleine. Touchez une barre pour lire son montant.")}</small></div>`;
+}
+document.addEventListener("pointerover", e => { const g = e.target.closest && e.target.closest(".ce .ceb"); if (!g) return; const [l, v] = g.dataset.l.split(" : "); const a = document.getElementById("ce-l"), b = document.getElementById("ce-v"); if (a) { a.textContent = l; b.textContent = v; } g.parentNode.querySelectorAll(".ceb.on").forEach(x => x.classList.remove("on")); g.classList.add("on"); });
+/* bilan de l'année */
+function vBilanYear(F, dc) {
+  const yr = bilY, cy = +today().slice(0, 4), isCur = yr === cy, from = yr + "-01-01", to = yr + "-12-31", end = isCur ? today() : to;
+  const f = flowsBetween(from, to, F), pf = flowsBetween((yr - 1) + "-01-01", isCur ? (yr - 1) + today().slice(4) : (yr - 1) + "-12-31", F);
+  const net = f.rev - f.dep, rate = f.rev > 0 ? Math.round(net / f.rev * 100) : null;
+  const pct = (a, b) => b ? Math.round((a - b) / b * 100) : null;
+  const evo = (v, good) => v == null ? "" : `<small class="evo ${(v > 0) === good ? "pos" : v === 0 ? "" : "neg"}">${v > 0 ? "+" : ""}${v} % ${isCur ? L("vs même période l'an dernier") : L("vs année précédente")}</small>`;
+  const ms = []; for (let m = 1; m <= 12; m++) { const k = yr + "-" + pad(m); if (k > today().slice(0, 7)) break; ms.push(k); }
+  let data = ms.map(m => flowsBetween(m + "-01", lastDay(m), F));
+  const first = data.findIndex(d => d.rev || d.dep), skip = first > 0 ? first : 0; /* on ne montre pas les mois d'avant le début du suivi */
+  const data0 = data.slice(); ms.splice(0, skip); data = data.slice(skip);
+  const max = niceMax(Math.max(1, ...data.map(d => Math.max(d.rev, d.dep)))), X0 = 36, W = 300, Y0 = 12, H = 110, gw = W / 12, bw = Math.max(4, Math.min(10, gw / 2 - 2)), y = v => Y0 + H - v / max * H;
+  const svg = `<svg class="chart" viewBox="0 0 340 ${H + 34}" aria-hidden="true"><defs><linearGradient id="gRevY" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--s1)"/><stop offset="1" style="stop-color:var(--s1);stop-opacity:.55"/></linearGradient><linearGradient id="gDepY" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--s2)"/><stop offset="1" style="stop-color:var(--s2);stop-opacity:.55"/></linearGradient></defs>
+    ${[0, .5, 1].map(k => `<line class="grid" x1="${X0}" x2="${X0 + W}" y1="${y(max * k)}" y2="${y(max * k)}"/><text x="${X0 - 5}" y="${y(max * k) + 3}" text-anchor="end">${compact(max * k)}</text>`).join("")}
+    ${[...Array(12)].map((_, i) => { const d = i >= skip ? data0[i] : null, gx = X0 + i * gw, lb = new Intl.DateTimeFormat(LOCALE, {month: "narrow"}).format(new Date(yr, i, 1)); return (d ? `<path class="bar" style="--i:${i}" d="${barPath(gx + gw / 2 - bw - 1, y(d.rev), bw, d.rev / max * H)}" fill="url(#gRevY)"/><path class="bar" style="--i:${i}" d="${barPath(gx + gw / 2 + 1, y(d.dep), bw, d.dep / max * H)}" fill="url(#gDepY)"/>` : "") + `<text x="${(gx + gw / 2).toFixed(1)}" y="${Y0 + H + 16}" text-anchor="middle">${esc(lb)}</text>`; }).join("")}</svg>`;
+  const sav = data.map((d, i) => ({m: ms[i], s: d.rev - d.dep, d: d.dep}));
+  const best = sav.length ? sav.reduce((a, b) => b.s > a.s ? b : a) : null, worst = sav.length ? sav.reduce((a, b) => b.d > a.d ? b : a) : null, nm = Math.max(1, ms.length);
+  const sp = Object.entries(f.byTop.dep).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]), top = sp.length ? sp[0][1] : 1, tot = Math.max(1, f.dep);
+  const revs = Object.entries(f.byTop.rev).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const nOps = allTx().filter(t => (t.t === "dep" || t.t === "rev") && t.date >= from && t.date <= to && F.has(acc(t.acc))).length;
+  const big = allTx().filter(t => t.t === "dep" && t.date >= from && t.date <= to && F.has(acc(t.acc)) && t.amt > 0).sort((a, b) => conv(b.amt, acc(b.acc).cur, dc) - conv(a.amt, acc(a.acc).cur, dc)).slice(0, 5);
+  const accs = accSorted().filter(a => F.has(a));
+  const pill = (now, was) => { const p = pct(now, was); return p == null ? "" : ` <span class="pct ${p > 0 ? "bad" : p < 0 ? "good" : ""}">${p > 0 ? "▲" : p < 0 ? "▼" : "="} ${Math.abs(p)} %</span>`; };
+  return `<div class="bar-line nowrap noprint"><button type="button" class="navb" data-act="bil-year" data-n="-1" aria-label="${esc(L("Année précédente"))}">‹</button>
+      <div class="period static"><b>${yr}</b><small>${esc(statAccLabel(F))} · ${esc(sym(dc))}</small></div>
+      <button type="button" class="navb" data-act="bil-year" data-n="1" aria-label="${esc(L("Année suivante"))}" ${isCur ? "disabled" : ""}>›</button></div>
+    <div class="bilan">
+    <div class="print-only bil-head"><b>Floussi</b> · ${esc(L("Bilan de l'année"))} ${yr} · ${esc(statAccLabel(F))}</div>
+    <h2 class="sr">${L("Résumé de l'année, en ")}${esc(plural(dc))}</h2>
+    <div class="tiles"><div class="tile"><small>${L("Revenus")}</small><b>${NF.format(f.rev / 100)}<span>${esc(sym(dc))}</span></b>${evo(pct(f.rev, pf.rev), true)}</div><div class="tile"><small>${L("Dépenses")}</small><b>${NF.format(f.dep / 100)}<span>${esc(sym(dc))}</span></b>${evo(pct(f.dep, pf.dep), false)}</div>
+      <div class="tile"><small>${L("Épargne de l'année")}</small><b>${net < 0 ? "−" : "+"}${NF.format(Math.abs(net) / 100)}<span>${esc(sym(dc))}</span></b>${rate != null ? `<small class="evo">${rate} % ${L("des revenus")}</small>` : ""}</div></div>
+    ${isCur ? `<p class="hint">${L("Année en cours : le bilan sera complet au 31 décembre.")}</p>` : ""}
+    <h2 class="sec-h">${L("Mois par mois")}</h2>
+    <div class="card"><div class="legend" aria-hidden="true"><span><i style="background:var(--s1)"></i>${L("Revenus")}</span><span><i style="background:var(--s2)"></i>${L("Dépenses")}</span></div>${svg}
+      <table class="mini"><caption class="sr">${L("Revenus, dépenses et solde par mois, en ")}${esc(plural(dc))}</caption><thead><tr><th scope="col">${L("Mois")}</th><th scope="col">${L("Revenus")}</th><th scope="col">${L("Dépenses")}</th><th scope="col">${L("Solde")}</th><th scope="col">${L("Épargne")}</th></tr></thead>
+      <tbody>${ms.map((m, i) => { const d = data[i], s = d.rev - d.dep, r = d.rev > 0 ? Math.round(s / d.rev * 100) : null; return `<tr><th scope="row">${esc(cap1(new Intl.DateTimeFormat(LOCALE, {month: "short"}).format(new Date(yr, +m.slice(5) - 1, 1))))}</th><td class="num">${NF.format(d.rev / 100)}</td><td class="num">${NF.format(d.dep / 100)}</td><td class="num ${s < 0 ? "neg" : ""}">${NF.format(s / 100)}</td><td class="num ${r == null ? "" : r < 0 ? "neg" : "pos"}">${r == null ? "–" : r + " %"}</td></tr>`; }).join("")}</tbody></table></div>
+    <h2 class="sec-h">${L("Faits marquants")}</h2>
+    <div class="card"><dl class="kv">
+      ${best ? `<div><dt>${L("Meilleur mois (plus forte épargne)")}</dt><dd>${esc(cap1(monthName(best.m)))} · ${best.s < 0 ? "−" : "+"}${fmt(Math.abs(best.s), dc)}</dd></div>` : ""}
+      ${worst && worst.d ? `<div><dt>${L("Mois le plus dépensier")}</dt><dd>${esc(cap1(monthName(worst.m)))} · ${fmt(worst.d, dc)}</dd></div>` : ""}
+      <div><dt>${L("Dépenses moyennes par mois")}</dt><dd>${fmt(Math.round(f.dep / nm), dc)}</dd></div>
+      <div><dt>${L("Revenus moyens par mois")}</dt><dd>${fmt(Math.round(f.rev / nm), dc)}</dd></div>
+      <div><dt>${L("Nombre d'opérations")}</dt><dd>${nOps}</dd></div></dl></div>
+    <h2 class="sec-h">${L("Dépenses par catégorie")}</h2>
+    <div class="card">${sp.length ? `<ul class="rows">${sp.slice(0, 10).map(([c, v]) => `<li><div class="rank" style="--cc:${esc(cat(c)?.color || "var(--s2)")}">${chipHtml(cat(c))}<span>${esc(catName(c))} <small class="num">${Math.round(v / tot * 100)} %</small>${pill(v, pf.byTop.dep[c] || 0)}</span><span class="amt">${fmt(v, dc)}</span><span class="track"><i style="width:${Math.max(2, v / top * 100)}%"></i></span></div></li>`).join("")}</ul>${pf.dep > 0 ? `<small class="hint">${L("Les flèches comparent avec l'année précédente.")}</small>` : ""}` : `<p class="empty">${L("Aucune dépense cette année.")}</p>`}</div>
+    ${revs.length ? `<h2 class="sec-h">${L("Sources de revenus")}</h2><div class="card"><dl class="kv">${revs.map(([c, v]) => `<div><dt>${esc(catName(c))} <small class="num">(${Math.round(v / Math.max(1, f.rev) * 100)} %)</small></dt><dd>${fmt(v, dc)}</dd></div>`).join("")}</dl></div>` : ""}
+    ${big.length ? `<h2 class="sec-h">${L("Les 5 plus grosses dépenses")}</h2><div class="card"><ul class="rows">${big.map(t => txRow(t, true)).join("")}</ul></div>` : ""}
+    <h2 class="sec-h">${L("Soldes des comptes au ")}${dm(end)}</h2>
+    <div class="card"><dl class="kv">${accs.map(a => `<div><dt>${esc(a.name)}</dt><dd>${fmt(balAt(a, end), a.cur)}</dd></div>`).join("")}</dl></div>
+    <p class="hint">${L("Bilan établi le ")}${longDate(today())}${F.ids.some(id => acc(id).cur !== dc) ? ". " + L("Montants convertis en") + " " + esc(plural(dc)) + " " + L("au cours saisi dans les Réglages.") : "."}</p>
+    </div>`;
+}
 /* gestion des modèles */
 function vModeles() {
   const T = TPL();
@@ -204,7 +328,7 @@ function vModeles() {
 let opTag = "", searchAll = true;
 let tab = "accueil", month = today().slice(0, 7), cur = "MAD", filter = "all", query = "", loanFilter = "open", catKind = "dep";
 const TITLES = {daret: L("Daret"), zakat: L("Zakat"), accueil: "Floussi", operations: L("Opérations"), recurrentes: L("Opérations récurrentes"), prets: L("Prêts et emprunts"), budgets: L("Budgets"),
-  stats: L("Statistiques"), verrouillage: L("Verrouillage"), comptes: L("Comptes"), reglages: L("Réglages"), devises: L("Devises et cours"), categories: L("Catégories"), apparence: L("Apparence"), donnees: L("Sauvegarde et import"), bilan: L("Bilan du mois"), modeles: L("Modèles d'opérations")};
+  stats: L("Statistiques"), verrouillage: L("Verrouillage"), comptes: L("Comptes"), reglages: L("Réglages"), devises: L("Devises et cours"), categories: L("Catégories"), apparence: L("Apparence"), donnees: L("Sauvegarde et import"), bilan: L("Bilan imprimable"), modeles: L("Modèles d'opérations")};
 const PARENT = {recurrentes: "operations", bilan: "stats", daret: "prets"};
 const IN_SETTINGS = ["reglages", "devises", "categories", "apparence", "donnees", "verrouillage", "modeles", "zakat"];
 const backLink = to => `<a class="back" href="#${to}"><span aria-hidden="true">‹</span> ${esc(TITLES[to])}</a>`;
@@ -480,8 +604,9 @@ function insights(F, f, dc) {
       <div><dt>${L("Dépenses")}<small>${fmt(pf.dep, dc)} ${L("avant")}</small></dt><dd>${fmt(f.dep, dc)} ${delta(f.dep, pf.dep, false)}</dd></div>
       <div><dt>${L("Revenus")}<small>${fmt(pf.rev, dc)} ${L("avant")}</small></dt><dd>${fmt(f.rev, dc)} ${delta(f.rev, pf.rev, true)}</dd></div></dl>
       <small class="hint">${dm(pFrom)} – ${dm(pTo)}</small></div>
+    ${changesBlock(f, pf, dc)}
     <h2 class="sec-h">${L("Dépenses par jour de la semaine")}</h2>
-    <div class="card">${f.dep ? `<p class="sr">${wlong.map((n, i) => n + " : " + say(wd[i], dc)).join(". ")}</p><div class="wk" aria-hidden="true">${wd.map((x, i) => `<div class="wkc${i === wtop ? " top" : ""}"><span class="num">${x ? compact(x) : ""}</span><div class="wkb"><i style="height:${Math.max(3, x / wmax * 100)}%;--i:${i}"></i></div><small>${esc(wnames[i])}</small></div>`).join("")}</div>
+    <div class="card">${f.dep ? `<p class="sr">${wlong.map((n, i) => n + " : " + say(wd[i], dc)).join(". ")}</p><div class="wk" aria-hidden="true">${wd.map((x, i) => `<div class="wkc${i === wtop ? " top" : ""}"><span class="num">${x ? Math.round(x / f.dep * 100) + "%" : ""}</span><div class="wkb"><i style="height:${Math.max(3, x / wmax * 100)}%;--i:${i}"></i></div><small>${esc(wnames[i])}</small></div>`).join("")}</div>
       <small class="hint">${L("Jour le plus dépensier :")} <b>${esc(wlong[wtop])}</b></small>` : `<p class="empty">${L("Aucune dépense")}</p>`}</div>
     ${accRows.length > 1 ? `<h2 class="sec-h">${L("Dépenses par compte")}</h2><div class="card"><ul class="rows">${accRows.map(([id, x]) => { const a = acc(id); return `<li><div class="rank" style="--cc:${esc(a.color || "var(--s1)")}">${accChip(a)}<span>${esc(a.name)} <small class="num">${Math.round(x / f.dep * 100)} %</small></span><span class="amt">${fmt(x, dc)}</span><span class="track"><i style="width:${Math.max(2, x / amax * 100)}%"></i></span></div></li>`; }).join("")}</ul></div>` : ""}
     ${top.length ? `<h2 class="sec-h">${L("Les 5 plus grosses dépenses")}</h2><div class="card"><ul class="rows">${top.map(t => txRow(t, true)).join("")}</ul></div>` : ""}` + insights2(F, f, dc);
@@ -622,8 +747,10 @@ function zoomWrap(svg, fk, ft) {
   const vb = svg.match(/viewBox="0 0 ([\d.]+) ([\d.]+)"/), ar = vb ? (vb[1] / vb[2]).toFixed(3) : "";
   return `<div class="zoomable"${ar ? ` style="--ar:${ar}"` : ""}>${'<div class="zin">' + svg + "</div>"}</div><div class="zbar">${fk ? fsBtn(fk, ft) : ""}<button type="button" data-act="zoom" data-z="in" aria-label="${L("Agrandir le graphique")}">+</button><button type="button" data-act="zoom" data-z="out" aria-label="${L("Réduire le graphique")}">−</button><button type="button" data-act="zoom" data-z="reset" aria-label="${L("Taille normale du graphique")}">1:1</button></div>`;
 }
-function balanceSeries(F) {
-  const txs = allTx(), last = txs.reduce((m, t) => t.date > m ? t.date : m, today());
+/* nw : patrimoine net. Prêter ou emprunter ne change pas ce que l'on possède (l'argent sorti devient une créance, l'argent reçu une dette) :
+   le patrimoine net, c'est donc le solde des comptes sans les mouvements de prêts, ce qui revient à ajouter ce qu'on vous doit et retirer ce que vous devez. */
+function balanceSeries(F, nw) {
+  const txs = nw ? allTx().filter(t => !(t.t === "pret" && t.loan)) : allTx(), last = allTx().reduce((m, t) => t.date > m ? t.date : m, today());
   const end = range.to < last ? range.to : last;
   if (range.from > end) return [];
   let v = S.meta.accounts.reduce((s, a) => F.has(a) ? s + conv(a.initial, a.cur, F.out) : s, 0); const per = {};
@@ -633,8 +760,9 @@ function balanceSeries(F) {
   return out;
 }
 function balanceChart(F) {
-  const dc = F.out, ser = balanceSeries(F);
-  if (!ser.length) { bal = null; return `<p class="empty">${L("Cette période commence après la dernière opération.")}</p>`; }
+  const nw = balMode === "nw" && S.meta.loans.length > 0, dc = F.out, ser = balanceSeries(F, nw), T = nw ? L("Patrimoine net") : L("Évolution du solde"), atL = nw ? L("Patrimoine au ") : L("Solde au ");
+  const modeSeg = S.meta.loans.length ? `<div class="seg bal-mode" role="group" aria-label="${esc(L("Courbe affichée"))}"><button type="button" data-act="balmode" data-v="acc" aria-pressed="${!nw}">${L("Solde des comptes")}</button><button type="button" data-act="balmode" data-v="nw" aria-pressed="${nw}">${L("Patrimoine net")}</button></div>` : "";
+  if (!ser.length) { bal = null; return modeSeg + `<p class="empty">${L("Cette période commence après la dernière opération.")}</p>`; }
   let lo = Math.min(...ser.map(p => p.v)), hi = Math.max(...ser.map(p => p.v));
   const minP = ser.find(p => p.v === lo), maxP = ser.find(p => p.v === hi);
   if (hi === lo) { hi += 10000; lo -= 10000; } const padv = (hi - lo) * .1; lo -= padv; hi += padv;
@@ -642,28 +770,32 @@ function balanceChart(F) {
   const x = i => n === 1 ? X0 + W / 2 : X0 + i / (n - 1) * W, y = v => Y0 + H - (v - lo) / (hi - lo) * H;
   const pts = ser.map((p, i) => x(i).toFixed(1) + "," + y(p.v).toFixed(1)).join(" ");
   const e = ser[n - 1], diff = e.v - ser.start;
-  bal = {ser, X0, W, Y0, H, lo, hi, cur: dc};
-  return `<h2 class="sr">${L("Évolution du solde")}</h2>
+  bal = {ser, X0, W, Y0, H, lo, hi, cur: dc, at: atL};
+  const lentM = {}, borM = {}; if (nw) for (const l of S.meta.loans) { let r = 0; for (const t of allTx()) if (t.t === "pret" && t.loan === l.id && t.date <= e.d && F.has(acc(t.acc))) r += t.mv === "base" ? t.amt : -t.amt; if (r > 0) { const m = l.kind === "lent" ? lentM : borM; m[l.cur] = (m[l.cur] || 0) + r; } }
+  return modeSeg + `<h2 class="sr">${T}</h2>
   <p class="sr">${L("Du ")}${longDate(ser[0].d)}${L(" au ")}${longDate(e.d)}${L(" : solde de départ ")}${say(ser.start, dc)}${L(", solde final ")}${say(e.v, dc)}${L(", soit une variation de ")}${diff < 0 ? L("moins") : L("plus")} ${say(Math.abs(diff), dc)}${L(". Le plus bas : ")}${say(minP.v, dc)}${L(" le ")}${longDate(minP.d)}${L(". Le plus haut : ")}${say(maxP.v, dc)}${L(" le ")}${longDate(maxP.d)}.</p>
-  <div id="bal-cap" class="cap" aria-live="polite"><span>${L("Solde au ")}${dm(e.d)}</span><b class="num">${fmt(e.v, dc)}</b></div>
+  <div id="bal-cap" class="cap" aria-live="polite"><span>${atL}${dm(e.d)}</span><b class="num">${fmt(e.v, dc)}</b></div>
   ${zoomWrap(`<svg class="chart" id="bal" viewBox="0 0 340 ${H + 36}" aria-hidden="true">
     ${[0, .5, 1].map(k => { const v = lo + (hi - lo) * k; return `<line class="grid" x1="${X0}" x2="${X0 + W}" y1="${y(v)}" y2="${y(v)}"/><text x="${X0 - 5}" y="${y(v) + 3}" text-anchor="end">${compact(v)}</text>`; }).join("")}
     ${lo < 0 && hi > 0 ? `<line x1="${X0}" x2="${X0 + W}" y1="${y(0)}" y2="${y(0)}" stroke="var(--muted)" stroke-dasharray="3 3"/>` : ""}
-    ${n > 1 ? `<polygon points="${X0},${Y0 + H} ${pts} ${X0 + W},${Y0 + H}" fill="var(--s1)" opacity=".12" class="area"/><path class="line" pathLength="1" d="M${pts.split(" ").join(" L")}" fill="none" stroke="var(--s1)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>` : ""}
+    <defs><linearGradient id="gBal" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--s1);stop-opacity:.32"/><stop offset="1" style="stop-color:var(--s1);stop-opacity:0"/></linearGradient></defs>
+    ${n > 2 ? [[maxP, "hi"], [minP, "lo"]].map(([p, k]) => { const i = ser.indexOf(p), px = x(i), py = y(p.v), up = k === "hi"; return `<g class="ext ${k}"><circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="3"/><text x="${Math.min(X0 + W - 2, Math.max(X0 + 2, px)).toFixed(1)}" y="${(up ? py - 6 : py + 12).toFixed(1)}" text-anchor="${px < X0 + 30 ? "start" : px > X0 + W - 30 ? "end" : "middle"}">${compact(p.v)}</text></g>`; }).join("") : ""}
+    ${n > 1 ? `<polygon points="${X0},${Y0 + H} ${pts} ${X0 + W},${Y0 + H}" fill="url(#gBal)" class="area"/><path class="line" pathLength="1" d="M${pts.split(" ").join(" L")}" fill="none" stroke="var(--s1)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>` : ""}
     <line id="bal-x" y1="${Y0}" y2="${Y0 + H}" x1="${x(n - 1)}" x2="${x(n - 1)}" stroke="var(--muted)" stroke-width="1" visibility="hidden"/>
     <circle id="bal-dot" cx="${x(n - 1)}" cy="${y(e.v)}" r="4.5" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"/>
     <text x="${X0}" y="${Y0 + H + 16}">${dm(ser[0].d)}</text><text x="${X0 + W}" y="${Y0 + H + 16}" text-anchor="end">${dm(e.d)}</text>
     <rect x="${X0}" y="${Y0}" width="${W}" height="${H}" fill="transparent"/>
-  </svg>`, "bal", L("Évolution du solde"))}
-  <div class="f inline"><span id="bal-date-lab">${L("Lire le solde au")}</span>${dateInput("bal-date", e.d, {min: ser[0].d, max: e.d})}</div>
-  <small class="hint" aria-hidden="true">${L("Variation sur la période : ")}<b class="num">${diff < 0 ? "−" : "+"}${fmt(Math.abs(diff), dc)}</b>${L(". Touchez la courbe pour lire le solde à une date, pincez pour zoomer.")}</small>`;
+  </svg>`, "bal", T)}
+  ${nw ? `<dl class="kv nw-kv"><div><dt>${L("Comptes")}</dt><dd>${fmt(e.v - sumBase(lentM, dc) + sumBase(borM, dc), dc)}</dd></div><div><dt>${L("On vous doit")}</dt><dd class="pos">+${fmt(sumBase(lentM, dc), dc)}</dd></div><div><dt>${L("Vous devez")}</dt><dd class="neg">−${fmt(sumBase(borM, dc), dc)}</dd></div></dl>` : ""}
+  <div class="f inline"><span id="bal-date-lab">${nw ? L("Lire le patrimoine au") : L("Lire le solde au")}</span>${dateInput("bal-date", e.d, {min: ser[0].d, max: e.d})}</div>
+  <small class="hint" aria-hidden="true">${L("Variation sur la période : ")}<b class="num">${diff < 0 ? "−" : "+"}${fmt(Math.abs(diff), dc)}${ser.start ? ` (${diff < 0 ? "−" : "+"}${Math.abs(Math.round(diff / Math.abs(ser.start) * 1000) / 10).toString().replace(".", DEC)} %)` : ""}</b>${nw ? L(". Le patrimoine net ajoute aux comptes l'argent qu'on vous doit et retire celui que vous devez.") : L(". Touchez la courbe pour lire le solde à une date, pincez pour zoomer.")}</small>`;
 }
 function balShow(i) {
   if (!bal) return; const n = bal.ser.length, p = bal.ser[i];
   const px = n === 1 ? bal.X0 + bal.W / 2 : bal.X0 + i / (n - 1) * bal.W, py = bal.Y0 + bal.H - (p.v - bal.lo) / (bal.hi - bal.lo) * bal.H;
   const l = document.getElementById("bal-x"), d = document.getElementById("bal-dot"); if (!l) return;
   l.setAttribute("x1", px); l.setAttribute("x2", px); l.setAttribute("visibility", "visible"); d.setAttribute("cx", px); d.setAttribute("cy", py);
-  document.getElementById("bal-cap").innerHTML = `<span>${L("Solde au ")}${dm(p.d)}</span><b class="num">${fmt(p.v, bal.cur)}</b>`;
+  document.getElementById("bal-cap").innerHTML = `<span>${bal.at || L("Solde au ")}${dm(p.d)}</span><b class="num">${fmt(p.v, bal.cur)}</b>`;
 }
 function balHover(e) {
   if (!bal) return; const svg = document.getElementById("bal"); if (!svg) return;
@@ -671,19 +803,37 @@ function balHover(e) {
   balShow(Math.max(0, Math.min(n - 1, Math.round((vx - bal.X0) / bal.W * (n - 1)))));
 }
 function pieChart(sp, total, dc) {
-  const segs = sp.slice(0, 8).map(([c, v]) => ({id: c, v, color: cat(c)?.color || "var(--other)"}));
-  const rest = sp.slice(8).reduce((x, y) => x + y[1], 0); if (rest > 0) segs.push({v: rest, color: "var(--other)"});
+  const segs = sp.slice(0, 8).map(([c, v]) => ({id: c, v, color: cat(c)?.color || "var(--other)", n: catName(c)}));
+  const rest = sp.slice(8).reduce((x, y) => x + y[1], 0); if (rest > 0) segs.push({v: rest, color: "var(--other)", n: L("Autres")});
   const R = 80, C = 2 * Math.PI * R; let off = 0;
-  const arcs = segs.map((sg, k) => { const len = sg.v / total * C, gap = segs.length > 1 && len > 6 ? 2.5 : 0;
-    const h = `<circle class="arc" style="--i:${k}" cx="110" cy="110" r="${R}" fill="none" stroke="${esc(sg.color)}" stroke-width="30" ${sg.id ? `data-act="cat-detail" data-id="${esc(sg.id)}"` : ""} stroke-dasharray="${Math.max(0, len - gap).toFixed(2)} ${(C - len + gap).toFixed(2)}" stroke-dashoffset="${(-off).toFixed(2)}" transform="rotate(-90 110 110)"></circle>`; off += len; return h; }).join("");
+  const pcs = v => { const p = v / total * 100; return p >= 10 || p < 1 ? Math.round(p) : Math.round(p * 10) / 10; };
+  const arcs = [], labs = [];
+  segs.forEach((sg, k) => {
+    const len = sg.v / total * C, gap = segs.length > 1 && len > 6 ? 2.5 : 0, pc = pcs(sg.v);
+    arcs.push(`<circle class="arc" style="--i:${k}" cx="110" cy="110" r="${R}" fill="none" stroke="${esc(sg.color)}" stroke-width="30" ${sg.id ? `data-act="cat-detail" data-id="${esc(sg.id)}"` : ""} data-n="${esc(sg.n)}" data-p="${pc}" data-v="${esc(fmt(sg.v, dc))}" stroke-dasharray="${Math.max(0, len - gap).toFixed(2)} ${(C - len + gap).toFixed(2)}" stroke-dashoffset="${(-off).toFixed(2)}" transform="rotate(-90 110 110)"></circle>`);
+    /* pourcentage écrit sur la part, si elle est assez grande */
+    if (sg.v / total >= .055) { const a = (off + len / 2) / C * 2 * Math.PI - Math.PI / 2; labs.push(`<text class="pl" style="--i:${k}" x="${(110 + R * Math.cos(a)).toFixed(1)}" y="${(110 + R * Math.sin(a) + 3.8).toFixed(1)}" text-anchor="middle">${String(pc).replace(".", DEC)}%</text>`); }
+    off += len;
+  });
   const word = statKind === "dep" ? L("dépensés") : L("reçus");
-  return `<div class="donut">${zoomWrap(`<svg viewBox="0 0 220 220" aria-hidden="true"><circle cx="110" cy="110" r="${R}" fill="none" stroke="var(--track)" stroke-width="30"/><g class="ring">${arcs}</g>
+  return `<div class="donut">${zoomWrap(`<svg viewBox="0 0 220 220" aria-hidden="true" data-t1="${esc(compact(total))}" data-t2="${esc(sym(dc) + " " + word)}" data-t3="${esc(plur(sp.length, L("catégorie"), L("catégories")))}"><defs><filter id="pshadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity=".18"/></filter></defs>
+    <circle cx="110" cy="110" r="${R}" fill="none" stroke="var(--track)" stroke-width="30"/><g class="ring" filter="url(#pshadow)">${arcs.join("")}</g><g class="plabs">${labs.join("")}</g>
     <circle cx="110" cy="110" r="62" fill="var(--surface)" opacity=".55"/>
-    <text x="110" y="110" text-anchor="middle" class="c1">${compact(total)}</text><text x="110" y="128" text-anchor="middle" class="c2">${esc(sym(dc))} ${word}</text><text x="110" y="143" text-anchor="middle" class="c2">${plur(sp.length, L("catégorie"), L("catégories"))}</text></svg>`)}</div>`;
+    <text x="110" y="110" text-anchor="middle" class="c1" id="dn-1">${compact(total)}</text><text x="110" y="128" text-anchor="middle" class="c2" id="dn-2">${esc(sym(dc))} ${word}</text><text x="110" y="143" text-anchor="middle" class="c2" id="dn-3">${plur(sp.length, L("catégorie"), L("catégories"))}</text></svg>`)}</div>`;
 }
+/* survol d'une part : le centre du camembert affiche sa catégorie, son % et son montant */
+function donutFocus(arc) {
+  const svg = arc && arc.closest("svg"); if (!svg) return;
+  const t = id => svg.querySelector("#" + id);
+  if (arc.classList && arc.classList.contains("arc")) { svg.classList.add("hov"); svg.querySelectorAll(".arc.on").forEach(x => x.classList.remove("on")); arc.classList.add("on");
+    t("dn-1").textContent = String(arc.dataset.p).replace(".", DEC) + " %"; t("dn-2").textContent = arc.dataset.n; t("dn-3").textContent = arc.dataset.v; }
+  else { svg.classList.remove("hov"); svg.querySelectorAll(".arc.on").forEach(x => x.classList.remove("on")); t("dn-1").textContent = svg.dataset.t1; t("dn-2").textContent = svg.dataset.t2; t("dn-3").textContent = svg.dataset.t3; }
+}
+document.addEventListener("pointerover", e => { const a = e.target.closest && e.target.closest(".donut .arc"); if (a) donutFocus(a); });
+document.addEventListener("pointerout", e => { const a = e.target.closest && e.target.closest(".donut .arc"); if (a && !(e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest(".donut .arc"))) donutFocus(a.closest("svg")); });
 function rankList(sp, tot, dc) {
   const top = sp.length ? sp[0][1] : 1;
-  return `<ul class="rows">${sp.map(([c, v]) => { const n = catName(c), pc = Math.round(v / tot * 100), cc = cat(c); return `<li><button type="button" class="rank" data-act="cat-detail" data-id="${esc(c)}" style="--cc:${esc(cc?.color || "var(--s1)")}" aria-label="${esc(n + ", " + pc + " %, " + say(v, dc) + L(". Voir le détail"))}">${chipHtml(cc)}<span>${esc(n)} <small class="num">${pc} %</small></span><span class="amt">${fmt(v, dc)} <span class="chev" aria-hidden="true">›</span></span><span class="track"><i style="width:${Math.max(2, v / top * 100)}%"></i></span></button></li>`; }).join("")}</ul>`;
+  return `<ul class="rows">${sp.map(([c, v]) => { const n = catName(c), pc = Math.round(v / tot * 100), cc = cat(c); return `<li><button type="button" class="rank" data-act="cat-detail" data-id="${esc(c)}" style="--cc:${esc(cc?.color || "var(--s1)")}" aria-label="${esc(n + ", " + pc + " %, " + say(v, dc) + L(". Voir le détail"))}">${chipHtml(cc)}<span class="rk-n">${esc(n)}</span><span class="amt">${fmt(v, dc)} <span class="chev" aria-hidden="true">›</span></span><span class="rk-b"><span class="track"><i style="width:${Math.max(2, v / top * 100)}%"></i></span><span class="pct num">${pc} %</span></span></button></li>`; }).join("")}</ul>`;
 }
 function vStats() {
   const F = statF(), dc = F.out, word = plural(dc), f = flowsBetween(range.from, range.to, F), net = f.rev - f.dep;
@@ -694,11 +844,15 @@ function vStats() {
   const data = ms.map(m => flowsBetween(m + "-01" < range.from ? range.from : m + "-01", lastDay(m) > range.to ? range.to : lastDay(m), F));
   const max = niceMax(Math.max(...data.map(d => Math.max(d.rev, d.dep)))), X0 = 36, W = 300, Y0 = 12, H = fsH("months", 120), gw = W / ms.length, bw = Math.max(4, Math.min(14, gw / 2 - 3));
   const y = v => Y0 + H - v / max * H;
-  const svg = `<svg class="chart" viewBox="0 0 340 ${H + 38}" aria-hidden="true">
+  const svg = `<svg class="chart" viewBox="0 0 340 ${H + 38}" aria-hidden="true"><defs><linearGradient id="gRev" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--s1)"/><stop offset="1" style="stop-color:var(--s1);stop-opacity:.55"/></linearGradient><linearGradient id="gDep" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--s2)"/><stop offset="1" style="stop-color:var(--s2);stop-opacity:.55"/></linearGradient></defs>
     ${[0, .5, 1].map(k => `<line class="grid" x1="${X0}" x2="${X0 + W}" y1="${y(max * k)}" y2="${y(max * k)}"/><text x="${X0 - 5}" y="${y(max * k) + 3}" text-anchor="end">${compact(max * k)}</text>`).join("")}
-    ${data.map((d, i) => { const gx = X0 + i * gw; return `<g class="m" data-act="pick-month" data-m="${ms[i]}"><rect x="${gx}" y="${Y0 - 6}" width="${gw}" height="${H + 26}" fill="transparent"/><path d="${barPath(gx + gw / 2 - bw - 1, y(d.rev), bw, d.rev / max * H)}" fill="var(--s1)" class="bar" style="--i:${i}"/><path d="${barPath(gx + gw / 2 + 1, y(d.dep), bw, d.dep / max * H)}" fill="var(--s2)" class="bar" style="--i:${i}"/><text x="${gx + gw / 2}" y="${Y0 + H + 14}" text-anchor="middle">${monthName(ms[i], true)}</text></g>`; }).join("")}
+    ${data.map((d, i) => { const gx = X0 + i * gw; return `<g class="m" data-act="pick-month" data-m="${ms[i]}"><rect x="${gx}" y="${Y0 - 6}" width="${gw}" height="${H + 26}" fill="transparent"/><path d="${barPath(gx + gw / 2 - bw - 1, y(d.rev), bw, d.rev / max * H)}" fill="url(#gRev)" class="bar" style="--i:${i}"/><path d="${barPath(gx + gw / 2 + 1, y(d.dep), bw, d.dep / max * H)}" fill="url(#gDep)" class="bar" style="--i:${i}"/><text x="${gx + gw / 2}" y="${Y0 + H + 14}" text-anchor="middle">${monthName(ms[i], true)}</text></g>`; }).join("")}
   </svg>`;
-  const tiles = `<div class="tiles"><div class="tile"><small>${L("Revenus")}</small><b>${NF.format(f.rev / 100)}<span>${esc(sym(dc))}</span></b></div><div class="tile"><small>${L("Dépenses")}</small><b>${NF.format(f.dep / 100)}<span>${esc(sym(dc))}</span></b></div><div class="tile"><small>${L("Solde")}</small><b>${net < 0 ? "−" : "+"}${NF.format(Math.abs(net) / 100)}<span>${esc(sym(dc))}</span></b></div></div>`;
+  const pr = prevRange(range), pf = flowsBetween(pr.from, pr.to, F);
+  const evo = (now, before, goodUp) => { if (!before) return ""; const p = Math.round((now - before) / before * 100); if (!p) return `<span class="evo">= ${L("comme avant")}</span>`;
+    const good = goodUp ? p > 0 : p < 0; return `<span class="evo ${good ? "pos" : "neg"}" title="${esc(L("Par rapport à la période précédente"))}">${p > 0 ? "▲" : "▼"} ${Math.abs(p)} %<span class="sr"> ${L("par rapport à la période précédente")}</span></span>`; };
+  const rate = f.rev > 0 ? Math.round(net / f.rev * 100) : null;
+  const tiles = `<div class="tiles"><div class="tile"><small>${L("Revenus")}</small><b data-count="${f.rev}">${NF.format(f.rev / 100)}<span>${esc(sym(dc))}</span></b>${evo(f.rev, pf.rev, true)}</div><div class="tile"><small>${L("Dépenses")}</small><b data-count="${f.dep}">${NF.format(f.dep / 100)}<span>${esc(sym(dc))}</span></b>${evo(f.dep, pf.dep, false)}</div><div class="tile"><small>${L("Solde")}</small><b data-count="${net}" data-sign="1">${net < 0 ? "−" : "+"}${NF.format(Math.abs(net) / 100)}<span>${esc(sym(dc))}</span></b>${rate !== null ? `<span class="evo ${rate >= 0 ? "pos" : "neg"}">${L("Épargne")} ${rate} %</span>` : ""}</div></div>`;
   const V = [["cat", L("Catégories")], ["bal", L("Solde")], ["months", L("Par mois")], ["more", L("Analyse")]];
   let body;
   const fsS = presetLabel() + " · " + dm(range.from) + " – " + dm(range.to) + " · " + statAccLabel(F), fsA = (k, t) => `data-fs="${k}" data-fs-t="${esc(t)}" data-fs-s="${esc(fsS)}"`;
@@ -707,10 +861,10 @@ function vStats() {
       <div class="filters"><div class="seg" role="group" aria-label="${L("Dépenses ou revenus")}"><button type="button" data-act="statkind" data-v="dep" aria-pressed="${statKind === "dep"}">${L("Dépenses")}</button><button type="button" data-act="statkind" data-v="rev" aria-pressed="${statKind === "rev"}">${L("Revenus")}</button></div>
       <div class="seg" role="group" aria-label="${L("Type de graphique")}"><button type="button" data-act="catview" data-v="bars" aria-pressed="${catView === "bars"}">${L("Barres")}</button><button type="button" data-act="catview" data-v="pie" aria-pressed="${catView === "pie"}">${L("Camembert")}</button></div></div></div>
     <div class="card">${!sp.length ? `<p class="empty">${statKind === "dep" ? L("Aucune dépense") : L("Aucun revenu")}${L(" sur cette période pour ces comptes.")}</p>` : (catView === "pie" ? pieChart(sp.filter(x => x[1] > 0), sp.reduce((z, x) => z + Math.max(0, x[1]), 0) || 1, dc) : "") + rankList(sp, tot, dc) + `<small class="hint" aria-hidden="true">${L("Touchez une catégorie pour voir ses sous-catégories et ses opérations.")}</small>`}</div></div>`;
-  else if (statView === "bal") body = `<div class="card fsw" ${fsA("bal", L("Évolution du solde"))}>${balanceChart(F)}</div>`;
+  else if (statView === "bal") body = `<div class="card fsw" ${fsA("bal", balMode === "nw" && S.meta.loans.length ? L("Patrimoine net") : L("Évolution du solde"))}>${balanceChart(F)}</div>`;
   else if (statView === "more") body = isPro() ? insights(F, f, dc) : proTeaser(L("Analyse détaillée"), L("Taux d'épargne, tendances, dépenses fixes et variables, jours les plus chers."), "ana");
   else body = `<h2 class="sr">${L("Revenus et dépenses par mois")}</h2><div class="card fsw" ${fsA("months", L("Revenus et dépenses par mois"))}><div class="legend" aria-hidden="true"><span><i style="background:var(--s1)"></i>${L("Revenus")}</span><span><i style="background:var(--s2)"></i>${L("Dépenses")}</span></div>${zoomWrap(svg, "months", L("Revenus et dépenses par mois"))}
-      <table class="mini"><caption class="sr">${L("Revenus, dépenses et solde par mois, en ")}${esc(word)}</caption><thead><tr><th scope="col">${L("Mois")}</th><th scope="col">${L("Revenus")}</th><th scope="col">${L("Dépenses")}</th><th scope="col">${L("Solde")}</th></tr></thead><tbody>${ms.map((m, i) => `<tr><th scope="row"><button type="button" class="linkbtn" data-act="pick-month" data-m="${m}" aria-label="${esc(monthName(m))}${L(", limiter la période à ce mois")}">${monthName(m, true)}${ms.length > 1 && m.slice(5) === "01" || i === 0 ? " " + m.slice(0, 4) : ""}</button></th><td>${NF.format(data[i].rev / 100)}</td><td>${NF.format(data[i].dep / 100)}</td><td>${NF.format((data[i].rev - data[i].dep) / 100)}</td></tr>`).join("")}</tbody></table>
+      <table class="mini"><caption class="sr">${L("Revenus, dépenses et solde par mois, en ")}${esc(word)}</caption><thead><tr><th scope="col">${L("Mois")}</th><th scope="col">${L("Revenus")}</th><th scope="col">${L("Dépenses")}</th><th scope="col">${L("Solde")}</th><th scope="col">${L("Épargne")}</th></tr></thead><tbody>${ms.map((m, i) => `<tr><th scope="row"><button type="button" class="linkbtn" data-act="pick-month" data-m="${m}" aria-label="${esc(monthName(m))}${L(", limiter la période à ce mois")}">${monthName(m, true)}${ms.length > 1 && m.slice(5) === "01" || i === 0 ? " " + m.slice(0, 4) : ""}</button></th><td>${NF.format(data[i].rev / 100)}</td><td>${NF.format(data[i].dep / 100)}</td><td>${NF.format((data[i].rev - data[i].dep) / 100)}</td><td class="${data[i].rev && data[i].rev >= data[i].dep ? "pos" : "neg"}">${data[i].rev ? Math.round((data[i].rev - data[i].dep) / data[i].rev * 100) + " %" : "–"}</td></tr>`).join("")}</tbody></table>
       <small class="hint">${L("Choisissez un mois pour limiter la période à ce mois.")}${cut ? L(" Seuls les 12 derniers mois de la période sont affichés.") : ""}</small></div>`;
   if (!isPro() && (statView === "bal" || statView === "months")) body = proTeaser(statView === "bal" ? L("Évolution du solde") : L("Revenus et dépenses par mois"), L("Les statistiques avancées font partie de Floussi Pro. La répartition par catégorie reste gratuite."), "stats");
   const al = statAccLabel(F);
@@ -718,7 +872,7 @@ function vStats() {
       <button type="button" class="period" data-act="stat-accs" aria-label="${esc(L("Comptes : ") + al + L(". Changer"))}"><b>${esc(al)}</b><small>${plur(F.ids.length, L("compte"), L("comptes"))} · ${esc(sym(dc))}</small><span aria-hidden="true">▾</span></button></div>
     ${conv1 ? `<p class="hint">${L("Montants convertis en")} ${esc(word)} ${L("au cours saisi dans les Réglages.")}</p>` : ""}
     <h2 class="sr">${L("Résumé de la période, en ")}${esc(word)}</h2>${tiles}
-    <a class="pill-btn bil-link" href="#bilan"><span aria-hidden="true">📄</span> ${L("Bilan du mois imprimable")}<span aria-hidden="true" style="margin-inline-start:auto">›</span></a>
+    <a class="pill-btn bil-link" href="#bilan"><span aria-hidden="true">📄</span> ${L("Bilan du mois ou de l'année, imprimable")}<span aria-hidden="true" style="margin-inline-start:auto">›</span></a>
     <div class="seg wide" role="group" aria-label="${L("Vue")}">${V.map(([k, l]) => `<button type="button" data-act="statview" data-v="${k}" aria-pressed="${statView === k}">${l}</button>`).join("")}</div>
     ${body}`;
 }

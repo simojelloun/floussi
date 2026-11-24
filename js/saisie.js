@@ -438,6 +438,7 @@ function openCatDetail(id) {
     subs = `<h3 class="day" style="padding-top:0"><span>${L("Par sous-catégorie")}</span></h3><ul class="card rows">${rows.map(([k, x]) => `<li class="row">${chipHtml(cat(k))}<span class="t"><b>${esc(k === id ? L("Sans sous-catégorie") : catName(k))}</b><small>${Math.round(x / total * 100)} %</small></span><span class="amt">${fmt(x, dc)}</span></li>`).join("")}</ul>`;
   }
   openSheet(head(esc(c ? c.name : L("Sans catégorie"))) + `<div class="cap" style="margin:0"><span>${plur(list.length, L("opération"), L("opérations"))} · ${dm(range.from)} – ${dm(range.to)}</span><b class="num">${fmt(total, dc)}</b></div>
+    ${(ce => ce ? proLock(ce, L("Évolution sur 12 mois"), "stats") : "")(catEvolution(id, statKind, F))}
     ${subs}<h3 class="day" style="padding-top:0"><span>${L("Opérations")}</span></h3>
     <div class="card">${list.length ? txByDay(list) : `<p class="empty">${L("Aucune opération.")}</p>`}</div>`, null, "#sheet-title");
 }
