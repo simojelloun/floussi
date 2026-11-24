@@ -7,7 +7,7 @@
    - Polices et images : cache d'abord (elles ne changent presque jamais).
    - Tout fichier chargé par index.html doit figurer dans FILES (vérifié par « npm test »).
    - Changer VERSION à chaque mise en ligne nettoie les anciens caches (conseillé, pas obligatoire). */
-const VERSION = "48";
+const VERSION = "49";
 const CACHE = "floussi-" + VERSION;
 const FILES = ["./", "index.html", "manifest.webmanifest", "confidentialite.html",
   "css/polices.css", "css/app.css",

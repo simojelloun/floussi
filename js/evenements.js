@@ -93,7 +93,9 @@ document.addEventListener("click", e => {
     const s = loanState(l); if (t.mv === "base" && s.principal - t.amt < s.repaid) return err(L("Supprimez d'abord les remboursements : ils dépasseraient le montant restant."));
     confirmSheet(L("Supprimer ce mouvement ? Les soldes seront recalculés."), L("Supprimer"), () => { const m = removeTx(t.id); if (m) touch("tx-" + m); render(); toastDel(L("Mouvement supprimé")); });
   }
-  else if (a === "statview") { statView = el.dataset.v; $("#view").scrollTop = 0; render(); }
+  else if (a === "statview") { statView = el.dataset.v; anaSel = ""; $("#view").scrollTop = 0; render(); }
+  else if (a === "ana") { anaSel = el.dataset.v; render(); const h = $("#view .ana-t") || $("#view .seg.wide"); if (h) { h.setAttribute("tabindex", "-1"); h.scrollIntoView({block: "start"}); h.focus({preventScroll: true}); } }
+  else if (a === "cat-all") { catAll = el.dataset.v === "1"; render(); }
   else if (a === "statkind") { statKind = el.dataset.v; render(); }
   else if (a === "period") openPeriod(el.dataset.t);
   else if (a === "op-month") { const m = shiftMonth(opRange.from.slice(0, 7), +el.dataset.n); opRange = {from: m + "-01", to: lastDay(m)}; opPreset = m === today().slice(0, 7) ? "month" : "custom"; render(); announce(cap1(monthName(m)) + ", " + plur(opsList().length, L("opération"), L("opérations"))); }

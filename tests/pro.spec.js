@@ -100,7 +100,12 @@ test("vues réservées : prévisions, analyse, bilan, import CSV", async ({ page
   await expect(page.locator("#view .pro-teaser")).toContainText("Prévisions de solde");
   await page.evaluate(() => { location.hash = "stats"; });
   await page.click('[data-act="statview"][data-v="more"]');
-  await expect(page.locator("#view .pro-teaser")).toContainText("Analyse détaillée");
+  // le sommaire des thèmes reste visible, chaque thème ouvre l'offre Pro
+  await expect(page.locator('#view .ana-menu [data-act="pro"][data-why="ana"]')).toHaveCount(7);
+  await expect(page.locator('#view [data-act="ana"]')).toHaveCount(0);
+  await page.locator('#view .ana-menu [data-act="pro"]').first().click();
+  await expect(page.locator("#sheet")).toContainText("Floussi Pro");
+  await page.keyboard.press("Escape");
   await page.evaluate(() => { location.hash = "bilan"; });
   await expect(page.locator("#view .pro-teaser")).toContainText("Bilan du mois");
   await page.evaluate(() => { location.hash = "donnees"; });

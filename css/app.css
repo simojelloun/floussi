@@ -802,3 +802,19 @@ svg.ce .ce-hi{font-weight:800;fill:var(--text)}
 .bal-mode{margin-bottom:10px}
 .nw-kv{margin-top:8px}.nw-kv dd.pos{color:var(--pos,#1a7f4b)}.nw-kv dd.neg{color:var(--crit,#c0392b)}
 @media print{.chg .dv i,.chg{animation:none!important}}
+/* analyse en thèmes */
+.ana-menu .menu-b small.pos{color:var(--pos,#1a7f4b)}.ana-menu .menu-b small.neg{color:var(--crit,#c0392b)}
+.ana-menu .menu-b,.ana-menu a{padding:13px 0}
+.ana-menu li:nth-child(7) .chip{--cc:#5b6b7f}
+.ana-menu .chev .pro-badge{font-size:10.5px}
+.ana-free{margin:4px 2px 8px}
+.ana-top{margin:2px 0 4px}.ana-top .link{font-weight:600;padding:6px 0}
+.ana-t{font-size:20px;margin:4px 0 2px;display:flex;gap:8px;align-items:center}.ana-t:focus{outline:none}
+.ana-body > .sec-h:first-child{margin-top:8px}
+.ana-nav{display:flex;justify-content:space-between;gap:10px;margin:18px 0 6px}.ana-nav .btn{width:auto;flex:0 1 auto;padding-inline:14px;font-size:13.5px}
+.more-b{margin-top:6px;width:100%}
+.tbl-more{margin-top:8px}.tbl-more summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:13.5px;padding:8px 0;list-style:none}
+.tbl-more summary::-webkit-details-marker{display:none}.tbl-more summary::after{content:" ▾"}.tbl-more[open] summary::after{content:" ▴"}
+.ana-top button.link{background:none;border:0;font-size:14px;cursor:pointer;color:var(--accent)}
+.ana-body .sec-h{margin-top:22px}.ana-body > .sec-h:first-child{margin-top:10px}
+.ana-nav .btn{display:inline-flex;align-items:center;gap:6px}

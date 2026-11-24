@@ -20,7 +20,7 @@ test("statistiques : devise d'affichage choisie", async ({ page }) => {
   await choisir(page, "sa-cur", "Euro");
   await page.click('#sheet button[type="submit"]');
   expect(await page.evaluate(() => statF().out)).toBe("EUR");
-  await page.evaluate(() => { statView = "more"; render(); });
+  await page.evaluate(() => { statView = "more"; anaSel = "chg"; render(); });
   await expect(page.locator("#view .sec-h", { hasText: "Dépenses cumulées" })).toBeVisible();
   sansErreur(page);
 });

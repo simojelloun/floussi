@@ -590,26 +590,26 @@ function insights(F, f, dc) {
   const wmax = Math.max(...wd, 1), wnames = [...Array(7)].map((_, i) => new Intl.DateTimeFormat(LOCALE, {weekday: "short"}).format(new Date(2024, 0, 1 + i)).replace(".", "")), wlong = [...Array(7)].map((_, i) => new Intl.DateTimeFormat(LOCALE, {weekday: "long"}).format(new Date(2024, 0, 1 + i))), wtop = wd.indexOf(Math.max(...wd));
   const byAcc = {}; deps.forEach(t => byAcc[t.acc] = (byAcc[t.acc] || 0) + v(t)); const accRows = Object.entries(byAcc).sort((a, b) => b[1] - a[1]), amax = accRows.length ? accRows[0][1] : 1;
   const top = deps.slice().sort((a, b) => v(b) - v(a)).slice(0, 5);
-  return `<h2 class="sec-h">${L("Taux d'épargne")}</h2>
+  return `<!--s:epargne--><h2 class="sec-h">${L("Taux d'épargne")}</h2>
     <div class="card ring-card"><svg viewBox="0 0 76 76" class="ring" aria-hidden="true"><circle cx="38" cy="38" r="30" fill="none" stroke="var(--track)" stroke-width="9"/><circle class="arc" cx="38" cy="38" r="30" fill="none" stroke="${rate != null && rate < 0 ? "var(--crit)" : "var(--accent)"}" stroke-width="9" stroke-linecap="round" stroke-dasharray="${(rc / 100 * C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 38 38)"/><text x="38" y="43" text-anchor="middle">${rate == null ? "–" : rate + " %"}</text></svg>
       <p>${rate == null ? L("Aucun revenu sur la période") : rate < 0 ? L("Dépenses supérieures aux revenus") + " : " + fmt(f.dep - f.rev, dc) : `<b>${rate} %</b> ${L("des revenus mis de côté")} : ${fmt(f.rev - f.dep, dc)}`}</p></div>
-    <h2 class="sec-h">${L("Chiffres clés")}</h2>
+    <!--s:cles--><h2 class="sec-h">${L("Chiffres clés")}</h2>
     <div class="card"><dl class="kv">
       <div><dt>${L("Dépense moyenne par jour")}</dt><dd>${fmt(Math.round(f.dep / days), dc)}</dd></div>
       <div><dt>${L("Dépense moyenne par opération")}</dt><dd>${fmt(deps.length ? Math.round(f.dep / deps.length) : 0, dc)}</dd></div>
       <div><dt>${L("Nombre d'opérations")}</dt><dd>${txs.length}</dd></div>
       ${top.length ? `<div><dt>${L("Plus grosse dépense")}</dt><dd>${esc(txInfo(top[0]).title)} · ${fmt(v(top[0]), dc)}</dd></div>` : ""}</dl></div>
-    <h2 class="sec-h">${L("Par rapport à la période précédente")}</h2>
+    <!--s:cmp--><h2 class="sec-h">${L("Par rapport à la période précédente")}</h2>
     <div class="card"><dl class="kv cmp">
       <div><dt>${L("Dépenses")}<small>${fmt(pf.dep, dc)} ${L("avant")}</small></dt><dd>${fmt(f.dep, dc)} ${delta(f.dep, pf.dep, false)}</dd></div>
       <div><dt>${L("Revenus")}<small>${fmt(pf.rev, dc)} ${L("avant")}</small></dt><dd>${fmt(f.rev, dc)} ${delta(f.rev, pf.rev, true)}</dd></div></dl>
       <small class="hint">${dm(pFrom)} – ${dm(pTo)}</small></div>
-    ${changesBlock(f, pf, dc)}
-    <h2 class="sec-h">${L("Dépenses par jour de la semaine")}</h2>
+    <!--s:chg-->${changesBlock(f, pf, dc)}
+    <!--s:wk--><h2 class="sec-h">${L("Dépenses par jour de la semaine")}</h2>
     <div class="card">${f.dep ? `<p class="sr">${wlong.map((n, i) => n + " : " + say(wd[i], dc)).join(". ")}</p><div class="wk" aria-hidden="true">${wd.map((x, i) => `<div class="wkc${i === wtop ? " top" : ""}"><span class="num">${x ? Math.round(x / f.dep * 100) + "%" : ""}</span><div class="wkb"><i style="height:${Math.max(3, x / wmax * 100)}%;--i:${i}"></i></div><small>${esc(wnames[i])}</small></div>`).join("")}</div>
       <small class="hint">${L("Jour le plus dépensier :")} <b>${esc(wlong[wtop])}</b></small>` : `<p class="empty">${L("Aucune dépense")}</p>`}</div>
-    ${accRows.length > 1 ? `<h2 class="sec-h">${L("Dépenses par compte")}</h2><div class="card"><ul class="rows">${accRows.map(([id, x]) => { const a = acc(id); return `<li><div class="rank" style="--cc:${esc(a.color || "var(--s1)")}">${accChip(a)}<span>${esc(a.name)} <small class="num">${Math.round(x / f.dep * 100)} %</small></span><span class="amt">${fmt(x, dc)}</span><span class="track"><i style="width:${Math.max(2, x / amax * 100)}%"></i></span></div></li>`; }).join("")}</ul></div>` : ""}
-    ${top.length ? `<h2 class="sec-h">${L("Les 5 plus grosses dépenses")}</h2><div class="card"><ul class="rows">${top.map(t => txRow(t, true)).join("")}</ul></div>` : ""}` + insights2(F, f, dc);
+    ${accRows.length > 1 ? `<!--s:acc--><h2 class="sec-h">${L("Dépenses par compte")}</h2><div class="card"><ul class="rows">${accRows.map(([id, x]) => { const a = acc(id); return `<li><div class="rank" style="--cc:${esc(a.color || "var(--s1)")}">${accChip(a)}<span>${esc(a.name)} <small class="num">${Math.round(x / f.dep * 100)} %</small></span><span class="amt">${fmt(x, dc)}</span><span class="track"><i style="width:${Math.max(2, x / amax * 100)}%"></i></span></div></li>`; }).join("")}</ul></div>` : ""}
+    ${top.length ? `<!--s:top--><h2 class="sec-h">${L("Les 5 plus grosses dépenses")}</h2><div class="card"><ul class="rows">${top.map(t => txRow(t, true)).join("")}</ul></div>` : ""}` + insights2(F, f, dc);
 }
 function insights2(F, f, dc) {
   const dayN = (a, b) => Math.round((new Date(b + "T12:00:00") - new Date(a + "T12:00:00")) / 864e5) + 1;
@@ -644,20 +644,20 @@ function insights2(F, f, dc) {
   const subs = Object.entries(f.byCat).filter(([c, x]) => cat(c) && cat(c).kind === "dep" && cat(c).parent && x > 0).sort((x, y) => y[1] - x[1]).slice(0, 5), smax = subs.length ? subs[0][1] : 1;
   const revs = Object.entries(f.byTop.rev).filter(x => x[1] > 0).sort((x, y) => y[1] - x[1]), rmax = revs.length ? revs[0][1] : 1;
   const bar = (chip, name, extra, x, max, col) => `<li><div class="rank" style="--cc:${col}">${chip}<span>${esc(name)} <small class="num">${esc(extra)}</small></span><span class="amt">${fmt(x, dc)}</span><span class="track"><i style="width:${Math.max(2, x / max * 100)}%"></i></span></div></li>`;
-  return `<h2 class="sec-h">${L("Dépenses cumulées")}</h2>
+  return `<!--s:cumul--><h2 class="sec-h">${L("Dépenses cumulées")}</h2>
     <div class="card fsw" data-fs="cumul" data-fs-t="${esc(L("Dépenses cumulées"))}" data-fs-s="${esc(presetLabel() + " · " + dm(range.from) + " – " + dm(range.to))}"><p class="sr">${L("Dépenses cumulées")} : ${say(a1, dc)}. ${L("Période précédente")} : ${say(a2, dc)}.</p><div class="legend" aria-hidden="true"><span><i style="background:var(--s2)"></i>${L("Cette période")}</span><span><i style="background:var(--muted)"></i>${L("Période précédente")}</span></div>${zoomWrap(cumul, "cumul", L("Dépenses cumulées"))}</div>
-    <h2 class="sec-h">${L("Calendrier des dépenses")} · ${esc(cap1(monthName(hm)))}</h2>
+    <!--s:cal--><h2 class="sec-h">${L("Calendrier des dépenses")} · ${esc(cap1(monthName(hm)))}</h2>
     <div class="card">${heat}<p class="hint">${rec ? L("Jour record :") + " <b>" + esc(cap1(dayName(rec[0]))) + "</b> · " + fmt(rec[1], dc) + ". " : ""}${L("Jours sans dépense :")} <b>${zero}</b> / ${elapsed}</p></div>
-    <h2 class="sec-h">${L("Charges fixes et dépenses variables")}</h2>
+    <!--s:fixe--><h2 class="sec-h">${L("Charges fixes et dépenses variables")}</h2>
     <div class="card"><div class="stack" aria-hidden="true"><i style="width:${fp}%;background:var(--c7,#6250d6)"></i><i style="width:${100 - fp}%;background:var(--s2)"></i></div>
       <dl class="kv" style="margin-top:10px"><div><dt><span class="dot" style="background:#6250d6"></span>${L("Charges fixes (opérations récurrentes)")}</dt><dd>${fmt(fixed, dc)} · ${fp} %</dd></div><div><dt><span class="dot" style="background:var(--s2)"></span>${L("Dépenses variables")}</dt><dd>${fmt(f.dep - fixed, dc)} · ${100 - fp} %</dd></div></dl></div>
-    ${isCurMonth || months > 1.5 ? `<h2 class="sec-h">${L("Tendances")}</h2><div class="card"><dl class="kv">
+    ${isCurMonth || months > 1.5 ? `<!--s:tend--><h2 class="sec-h">${L("Tendances")}</h2><div class="card"><dl class="kv">
       ${isCurMonth ? `<div><dt>${L("Dépenses prévues à la fin du mois, à ce rythme")}</dt><dd>${fmt(Math.round(f.dep / elapsed * len), dc)}</dd></div>` : ""}
       ${months > 1.5 ? `<div><dt>${L("Dépenses moyennes par mois")}</dt><dd>${fmt(Math.round(f.dep / months), dc)}</dd></div><div><dt>${L("Revenus moyens par mois")}</dt><dd>${fmt(Math.round(f.rev / months), dc)}</dd></div>` : ""}</dl></div>` : ""}
-    ${labs.length ? `<h2 class="sec-h">${L("Où part l'argent : principaux libellés")}</h2><div class="card"><ul class="rows">${labs.map(x => bar("", x.name, "× " + x.n, x.v, lmax, "var(--s2)")).join("")}</ul></div>` : ""}
-    ${subs.length ? `<h2 class="sec-h">${L("Principales sous-catégories")}</h2><div class="card"><ul class="rows">${subs.map(([c, x]) => bar(chipHtml(cat(c)), catLabel(c), Math.round(x / tot * 100) + " %", x, smax, esc(cat(c).color || "var(--s1)"))).join("")}</ul></div>` : ""}
-    ${(() => { const tt = tagTotals(range.from, range.to, F); if (!tt.length) return ""; const mx = Math.max(1, ...tt.map(x => x[1].dep)); return `<h2 class="sec-h">${L("Par étiquette")}</h2><div class="card"><ul class="rows">${tt.slice(0, 8).map(([g, x]) => bar("", "#" + g, plur(x.n, L("opération"), L("opérations")), x.dep, mx, "var(--s1)")).join("")}</ul></div>`; })()}
-    ${revs.length ? `<h2 class="sec-h">${L("Sources de revenus")}</h2><div class="card"><ul class="rows">${revs.map(([c, x]) => bar(chipHtml(cat(c)), catName(c), Math.round(x / Math.max(1, f.rev) * 100) + " %", x, rmax, esc(cat(c)?.color || "var(--s1)"))).join("")}</ul></div>` : ""}`;
+    ${labs.length ? `<!--s:lab--><h2 class="sec-h">${L("Où part l'argent : principaux libellés")}</h2><div class="card"><ul class="rows">${labs.map(x => bar("", x.name, "× " + x.n, x.v, lmax, "var(--s2)")).join("")}</ul></div>` : ""}
+    ${subs.length ? `<!--s:subs--><h2 class="sec-h">${L("Principales sous-catégories")}</h2><div class="card"><ul class="rows">${subs.map(([c, x]) => bar(chipHtml(cat(c)), catLabel(c), Math.round(x / tot * 100) + " %", x, smax, esc(cat(c).color || "var(--s1)"))).join("")}</ul></div>` : ""}
+    ${(() => { const tt = tagTotals(range.from, range.to, F); if (!tt.length) return ""; const mx = Math.max(1, ...tt.map(x => x[1].dep)); return `<!--s:tags--><h2 class="sec-h">${L("Par étiquette")}</h2><div class="card"><ul class="rows">${tt.slice(0, 8).map(([g, x]) => bar("", "#" + g, plur(x.n, L("opération"), L("opérations")), x.dep, mx, "var(--s1)")).join("")}</ul></div>`; })()}
+    ${revs.length ? `<!--s:revs--><h2 class="sec-h">${L("Sources de revenus")}</h2><div class="card"><ul class="rows">${revs.map(([c, x]) => bar(chipHtml(cat(c)), catName(c), Math.round(x / Math.max(1, f.rev) * 100) + " %", x, rmax, esc(cat(c)?.color || "var(--s1)"))).join("")}</ul></div>` : ""}`;
 }
 function vRecurrentes() {
   const list = S.meta.recurring.slice().sort((a, b) => (nextOcc(a) || "9").localeCompare(nextOcc(b) || "9"));
@@ -714,7 +714,7 @@ function vPrets() {
 function niceMax(v) { if (v <= 0) return 100; const p = Math.pow(10, Math.floor(Math.log10(v))); for (const m of [1, 2, 2.5, 5, 10]) if (v <= m * p) return m * p; return 10 * p; }
 const compact = c => { const v = c / 100; return Math.abs(v) >= 1000 ? NF.format(v / 1000).replace(/,00$/, "").replace(/(,\d)0$/, "$1") + " k" : String(Math.round(v)); };
 function barPath(x, y, w, h) { const r = Math.min(3, h, w / 2); return h <= 0 ? "" : `M${x},${y + h}V${y + r}q0,${-r} ${r},${-r}h${w - 2 * r}q${r},0 ${r},${r}V${y + h}z`; }
-let range = null, preset = "month", catView = "bars", statView = "cat", statKind = "dep", statAccs = null, bal = null;
+let range = null, preset = "month", catView = "bars", statView = "cat", statKind = "dep", statAccs = null, bal = null, anaSel = "", catAll = false;
 const PRESETS = [["month", L("Ce mois")], ["prev", L("Mois dernier")], ["q", L("3 derniers mois")], ["year", L("Cette année")], ["all", L("Tout l'historique")]];
 const presetLabel = () => (PRESETS.find(p => p[0] === preset) || [0, L("Période choisie")])[1];
 function presetRange(p) {
@@ -831,9 +831,9 @@ function donutFocus(arc) {
 }
 document.addEventListener("pointerover", e => { const a = e.target.closest && e.target.closest(".donut .arc"); if (a) donutFocus(a); });
 document.addEventListener("pointerout", e => { const a = e.target.closest && e.target.closest(".donut .arc"); if (a && !(e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest(".donut .arc"))) donutFocus(a.closest("svg")); });
-function rankList(sp, tot, dc) {
-  const top = sp.length ? sp[0][1] : 1;
-  return `<ul class="rows">${sp.map(([c, v]) => { const n = catName(c), pc = Math.round(v / tot * 100), cc = cat(c); return `<li><button type="button" class="rank" data-act="cat-detail" data-id="${esc(c)}" style="--cc:${esc(cc?.color || "var(--s1)")}" aria-label="${esc(n + ", " + pc + " %, " + say(v, dc) + L(". Voir le détail"))}">${chipHtml(cc)}<span class="rk-n">${esc(n)}</span><span class="amt">${fmt(v, dc)} <span class="chev" aria-hidden="true">›</span></span><span class="rk-b"><span class="track"><i style="width:${Math.max(2, v / top * 100)}%"></i></span><span class="pct num">${pc} %</span></span></button></li>`; }).join("")}</ul>`;
+function rankList(sp, tot, dc, lim) {
+  const top = sp.length ? sp[0][1] : 1, more = lim && sp.length > lim + 1 ? sp.length - lim : 0;
+  return `<ul class="rows">${(more ? sp.slice(0, lim) : sp).map(([c, v]) => { const n = catName(c), pc = Math.round(v / tot * 100), cc = cat(c); return `<li><button type="button" class="rank" data-act="cat-detail" data-id="${esc(c)}" style="--cc:${esc(cc?.color || "var(--s1)")}" aria-label="${esc(n + ", " + pc + " %, " + say(v, dc) + L(". Voir le détail"))}">${chipHtml(cc)}<span class="rk-n">${esc(n)}</span><span class="amt">${fmt(v, dc)} <span class="chev" aria-hidden="true">›</span></span><span class="rk-b"><span class="track"><i style="width:${Math.max(2, v / top * 100)}%"></i></span><span class="pct num">${pc} %</span></span></button></li>`; }).join("")}</ul>${more ? `<button type="button" class="btn ghost more-b" data-act="cat-all" data-v="1">${L("Afficher les")} ${more} ${L("autres catégories")}</button>` : lim === 0 && catAll && sp.length > 7 && !fsKey ? `<button type="button" class="btn ghost more-b" data-act="cat-all" data-v="0">${L("Afficher moins")}</button>` : ""}`;
 }
 function vStats() {
   const F = statF(), dc = F.out, word = plural(dc), f = flowsBetween(range.from, range.to, F), net = f.rev - f.dep;
@@ -860,21 +860,68 @@ function vStats() {
   if (statView === "cat") body = `<div class="fsw" ${fsA("cat", catT)}><div class="sec-h" style="align-items:center;margin-bottom:-4px;flex-wrap:wrap"><h2>${L("Par catégorie")}</h2>${sp.length ? fsBtn("cat", catT) : ""}
       <div class="filters"><div class="seg" role="group" aria-label="${L("Dépenses ou revenus")}"><button type="button" data-act="statkind" data-v="dep" aria-pressed="${statKind === "dep"}">${L("Dépenses")}</button><button type="button" data-act="statkind" data-v="rev" aria-pressed="${statKind === "rev"}">${L("Revenus")}</button></div>
       <div class="seg" role="group" aria-label="${L("Type de graphique")}"><button type="button" data-act="catview" data-v="bars" aria-pressed="${catView === "bars"}">${L("Barres")}</button><button type="button" data-act="catview" data-v="pie" aria-pressed="${catView === "pie"}">${L("Camembert")}</button></div></div></div>
-    <div class="card">${!sp.length ? `<p class="empty">${statKind === "dep" ? L("Aucune dépense") : L("Aucun revenu")}${L(" sur cette période pour ces comptes.")}</p>` : (catView === "pie" ? pieChart(sp.filter(x => x[1] > 0), sp.reduce((z, x) => z + Math.max(0, x[1]), 0) || 1, dc) : "") + rankList(sp, tot, dc) + `<small class="hint" aria-hidden="true">${L("Touchez une catégorie pour voir ses sous-catégories et ses opérations.")}</small>`}</div></div>`;
+    <div class="card">${!sp.length ? `<p class="empty">${statKind === "dep" ? L("Aucune dépense") : L("Aucun revenu")}${L(" sur cette période pour ces comptes.")}</p>` : (catView === "pie" ? pieChart(sp.filter(x => x[1] > 0), sp.reduce((z, x) => z + Math.max(0, x[1]), 0) || 1, dc) : "") + rankList(sp, tot, dc, fsKey === "cat" || catAll ? 0 : 6) + `<small class="hint" aria-hidden="true">${L("Touchez une catégorie pour voir ses sous-catégories et ses opérations.")}</small>`}</div></div>`;
   else if (statView === "bal") body = `<div class="card fsw" ${fsA("bal", balMode === "nw" && S.meta.loans.length ? L("Patrimoine net") : L("Évolution du solde"))}>${balanceChart(F)}</div>`;
-  else if (statView === "more") body = isPro() ? insights(F, f, dc) : proTeaser(L("Analyse détaillée"), L("Taux d'épargne, tendances, dépenses fixes et variables, jours les plus chers."), "ana");
+  else if (statView === "more") body = anaView(F, f, dc);
   else body = `<h2 class="sr">${L("Revenus et dépenses par mois")}</h2><div class="card fsw" ${fsA("months", L("Revenus et dépenses par mois"))}><div class="legend" aria-hidden="true"><span><i style="background:var(--s1)"></i>${L("Revenus")}</span><span><i style="background:var(--s2)"></i>${L("Dépenses")}</span></div>${zoomWrap(svg, "months", L("Revenus et dépenses par mois"))}
-      <table class="mini"><caption class="sr">${L("Revenus, dépenses et solde par mois, en ")}${esc(word)}</caption><thead><tr><th scope="col">${L("Mois")}</th><th scope="col">${L("Revenus")}</th><th scope="col">${L("Dépenses")}</th><th scope="col">${L("Solde")}</th><th scope="col">${L("Épargne")}</th></tr></thead><tbody>${ms.map((m, i) => `<tr><th scope="row"><button type="button" class="linkbtn" data-act="pick-month" data-m="${m}" aria-label="${esc(monthName(m))}${L(", limiter la période à ce mois")}">${monthName(m, true)}${ms.length > 1 && m.slice(5) === "01" || i === 0 ? " " + m.slice(0, 4) : ""}</button></th><td>${NF.format(data[i].rev / 100)}</td><td>${NF.format(data[i].dep / 100)}</td><td>${NF.format((data[i].rev - data[i].dep) / 100)}</td><td class="${data[i].rev && data[i].rev >= data[i].dep ? "pos" : "neg"}">${data[i].rev ? Math.round((data[i].rev - data[i].dep) / data[i].rev * 100) + " %" : "–"}</td></tr>`).join("")}</tbody></table>
+      <details class="tbl-more"${fsKey === "months" ? " open" : ""}><summary>${L("Voir le détail en tableau")}</summary><table class="mini"><caption class="sr">${L("Revenus, dépenses et solde par mois, en ")}${esc(word)}</caption><thead><tr><th scope="col">${L("Mois")}</th><th scope="col">${L("Revenus")}</th><th scope="col">${L("Dépenses")}</th><th scope="col">${L("Solde")}</th><th scope="col">${L("Épargne")}</th></tr></thead><tbody>${ms.map((m, i) => `<tr><th scope="row"><button type="button" class="linkbtn" data-act="pick-month" data-m="${m}" aria-label="${esc(monthName(m))}${L(", limiter la période à ce mois")}">${monthName(m, true)}${ms.length > 1 && m.slice(5) === "01" || i === 0 ? " " + m.slice(0, 4) : ""}</button></th><td>${NF.format(data[i].rev / 100)}</td><td>${NF.format(data[i].dep / 100)}</td><td>${NF.format((data[i].rev - data[i].dep) / 100)}</td><td class="${data[i].rev && data[i].rev >= data[i].dep ? "pos" : "neg"}">${data[i].rev ? Math.round((data[i].rev - data[i].dep) / data[i].rev * 100) + " %" : "–"}</td></tr>`).join("")}</tbody></table></details>
       <small class="hint">${L("Choisissez un mois pour limiter la période à ce mois.")}${cut ? L(" Seuls les 12 derniers mois de la période sont affichés.") : ""}</small></div>`;
   if (!isPro() && (statView === "bal" || statView === "months")) body = proTeaser(statView === "bal" ? L("Évolution du solde") : L("Revenus et dépenses par mois"), L("Les statistiques avancées font partie de Floussi Pro. La répartition par catégorie reste gratuite."), "stats");
   const al = statAccLabel(F);
   return `<div class="bar-line"><button type="button" class="period" data-act="period" aria-label="${esc(L("Période : ") + presetLabel() + L(", du ") + longDate(range.from) + L(" au ") + longDate(range.to) + L(". Changer"))}"><b>${esc(presetLabel())}</b><small>${dm(range.from)} – ${dm(range.to)}</small><span aria-hidden="true">▾</span></button>
       <button type="button" class="period" data-act="stat-accs" aria-label="${esc(L("Comptes : ") + al + L(". Changer"))}"><b>${esc(al)}</b><small>${plur(F.ids.length, L("compte"), L("comptes"))} · ${esc(sym(dc))}</small><span aria-hidden="true">▾</span></button></div>
-    ${conv1 ? `<p class="hint">${L("Montants convertis en")} ${esc(word)} ${L("au cours saisi dans les Réglages.")}</p>` : ""}
     <h2 class="sr">${L("Résumé de la période, en ")}${esc(word)}</h2>${tiles}
-    <a class="pill-btn bil-link" href="#bilan"><span aria-hidden="true">📄</span> ${L("Bilan du mois ou de l'année, imprimable")}<span aria-hidden="true" style="margin-inline-start:auto">›</span></a>
     <div class="seg wide" role="group" aria-label="${L("Vue")}">${V.map(([k, l]) => `<button type="button" data-act="statview" data-v="${k}" aria-pressed="${statView === k}">${l}</button>`).join("")}</div>
-    ${body}`;
+    ${body}
+    ${conv1 ? `<p class="hint">${L("Montants convertis en")} ${esc(word)} ${L("au cours saisi dans les Réglages.")}</p>` : ""}`;
+}
+/* Analyse : un sommaire de thèmes, chacun sur sa propre page, au lieu d'une longue page */
+const ANA = () => [
+  {k: "save", e: "💰", t: L("Épargne et chiffres clés"), d: L("Taux d'épargne, moyennes, prévision de fin de mois"), s: ["epargne", "cles", "tend"]},
+  {k: "chg", e: "📈", t: L("Ce qui a changé"), d: L("Hausses et baisses par catégorie, dépenses cumulées"), s: ["cmp", "chg", "cumul"]},
+  {k: "when", e: "📅", t: L("Quand je dépense"), d: L("Jours de la semaine, calendrier des dépenses"), s: ["wk", "cal"]},
+  {k: "where", e: "🔎", t: L("Où part l'argent"), d: L("Plus grosses dépenses, libellés, sous-catégories, étiquettes"), s: ["top", "lab", "subs", "tags"]},
+  {k: "fixed", e: "🔁", t: L("Charges fixes et variables"), d: L("Part des opérations récurrentes dans vos dépenses"), s: ["fixe"]},
+  {k: "src", e: "🏦", t: L("Comptes et revenus"), d: L("Dépenses par compte, sources de revenus"), s: ["acc", "revs"]}
+];
+function anaInfo(F, f, dc) {
+  const v = t => conv(t.amt, acc(t.acc).cur, dc), dayN = (a, b) => Math.round((new Date(b + "T12:00:00") - new Date(a + "T12:00:00")) / 864e5) + 1;
+  const addD = (d, n) => { const [y, m, x] = d.split("-").map(Number); return ymd(new Date(y, m - 1, x + n)); };
+  const deps = allTx().filter(t => t.t === "dep" && t.date >= range.from && t.date <= range.to && F.has(acc(t.acc)));
+  const len = dayN(range.from, range.to), pTo = addD(range.from, -1), pf = flowsBetween(addD(pTo, -(len - 1)), pTo, F);
+  const rate = f.rev > 0 ? Math.round((f.rev - f.dep) / f.rev * 100) : null, dp = pf.dep ? Math.round((f.dep - pf.dep) / pf.dep * 100) : null;
+  const wd = Array(7).fill(0); deps.forEach(t => { const [y, m, d] = t.date.split("-").map(Number); wd[(new Date(y, m - 1, d).getDay() + 6) % 7] += Math.max(0, v(t)); });
+  const wtop = wd.indexOf(Math.max(...wd)), big = deps.slice().sort((a, b) => v(b) - v(a))[0];
+  const fp = f.dep > 0 ? Math.max(0, Math.min(100, Math.round(deps.filter(t => t.rec).reduce((z, t) => z + v(t), 0) / f.dep * 100))) : null;
+  const rv = Object.entries(f.byTop.rev).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1])[0], net = f.rev - f.dep;
+  return {
+    save: rate == null ? [L("Aucun revenu sur la période"), ""] : [`${L("Épargne")} ${rate} % · ${net < 0 ? "−" : "+"}${fmt(Math.abs(net), dc)}`, rate < 0 ? "neg" : "pos"],
+    chg: dp == null ? [L("Rien à comparer sur la période d'avant"), ""] : [`${L("Dépenses")} ${dp > 0 ? "▲" : dp < 0 ? "▼" : "="} ${Math.abs(dp)} % ${L("par rapport à avant")}`, dp > 0 ? "neg" : dp < 0 ? "pos" : ""],
+    when: f.dep ? [`${L("Jour le plus dépensier :")} ${new Intl.DateTimeFormat(LOCALE, {weekday: "long"}).format(new Date(2024, 0, 1 + wtop))}`, ""] : [L("Aucune dépense"), ""],
+    where: big ? [`${txInfo(big).title} · ${fmt(v(big), dc)}`, ""] : [L("Aucune dépense"), ""],
+    fixed: fp != null ? [`${L("Charges fixes :")} ${fp} % ${L("des dépenses")}`, ""] : [L("Aucune dépense"), ""],
+    src: rv ? [`${catName(rv[0])} · ${Math.round(rv[1] / Math.max(1, f.rev) * 100)} % ${L("des revenus")}`, ""] : [L("Aucun revenu sur la période"), ""]
+  };
+}
+function anaView(F, f, dc) {
+  const th = ANA(), pro = isPro(), cur = pro && th.find(x => x.k === anaSel);
+  if (!cur) {
+    const info = pro ? anaInfo(F, f, dc) : null;
+    const item = x => { const [t, cl] = info ? info[x.k] : [x.d, ""];
+      return `<li><button type="button" class="menu-b" ${pro ? `data-act="ana" data-v="${x.k}"` : `data-act="pro" data-why="ana"`} aria-label="${esc(x.t + ". " + t + (pro ? "" : ". Floussi Pro"))}"><span class="chip emo" aria-hidden="true"><span class="e">${x.e}</span></span><span><b>${esc(x.t)}</b><small class="${cl}">${esc(t)}</small></span><span class="chev" aria-hidden="true">${pro ? "›" : `<span class="pro-badge">Pro</span>`}</span></button></li>`; };
+    return `<h2 class="sr">${L("Analyse")}</h2>
+      ${pro ? "" : `<p class="hint ana-free">${L("L'analyse détaillée fait partie de Floussi Pro. Touchez un thème pour en savoir plus.")}</p>`}
+      <ul class="card plain menu ana-menu">${th.map(item).join("")}
+      <li>${pro ? `<a href="#bilan"` : `<button type="button" class="menu-b" data-act="pro" data-why="ana"`}><span class="chip emo" aria-hidden="true"><span class="e">📄</span></span><span><b>${L("Bilan imprimable")}</b><small>${L("Mois ou année, à imprimer ou enregistrer en PDF")}</small></span><span class="chev" aria-hidden="true">${pro ? "›" : `<span class="pro-badge">Pro</span>`}</span>${pro ? "</a>" : "</button>"}</li></ul>`;
+  }
+  const parts = {}, bits = insights(F, f, dc).split(/<!--s:([a-z]+)-->/); for (let i = 1; i < bits.length; i += 2) parts[bits[i]] = bits[i + 1];
+  let html = cur.s.map(k => parts[k] || "").join(""); const i = th.indexOf(cur), pv = th[i - 1], nx = th[i + 1];
+  html = html.replace(`<h2 class="sec-h">${cur.t}</h2>`, ""); /* pas de titre en double */
+  if (cur.s.length === 1) html = html.replace(/^\s*<h2 class="sec-h">[^<]*<\/h2>/, "");
+  return `<div class="ana-top"><button type="button" class="link" data-act="ana" data-v=""><span aria-hidden="true">‹</span> ${L("Tous les thèmes")}</button></div>
+    <h2 class="ana-t"><span aria-hidden="true">${cur.e}</span> ${esc(cur.t)}</h2>
+    <div class="ana-body">${html || `<div class="card"><p class="empty">${L("Rien à afficher sur cette période.")}</p></div>`}</div>
+    <nav class="ana-nav" aria-label="${esc(L("Autres thèmes"))}">${pv ? `<button type="button" class="btn ghost" data-act="ana" data-v="${pv.k}"><span aria-hidden="true">‹</span> ${esc(pv.t)}</button>` : "<span></span>"}${nx ? `<button type="button" class="btn ghost" data-act="ana" data-v="${nx.k}">${esc(nx.t)} <span aria-hidden="true">›</span></button>` : ""}</nav>`;
 }
 
 /* ---------- comptes et réglages ---------- */

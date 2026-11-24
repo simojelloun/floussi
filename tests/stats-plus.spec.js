@@ -4,8 +4,10 @@ const { ouvrir, sansErreur } = require("./aide");
 
 test("analyse : ce qui a changé par rapport à la période d'avant", async ({ page }) => {
   await ouvrir(page);
-  await page.evaluate(() => { location.hash = "stats"; statView = "more"; render(); });
-  await expect(page.locator("#view .sec-h", { hasText: "Ce qui a changé" })).toBeVisible();
+  await page.evaluate(() => { location.hash = "stats"; });
+  await page.click('[data-act="statview"][data-v="more"]');
+  await page.click('[data-act="ana"][data-v="chg"]');
+  await expect(page.locator("#view .ana-t")).toContainText("Ce qui a changé");
   const n = await page.locator("#view .chg").count();
   expect(n).toBeGreaterThan(0);
   // chaque ligne : écart affiché = maintenant − avant
@@ -65,5 +67,50 @@ test("bilan de l'année : mois par mois, faits marquants, année précédente", 
   expect(await page.evaluate(() => window.__imp)).toBeGreaterThan(0);
   await page.click('[data-act="bilmode"][data-v="m"]');
   await expect(page.locator('[data-act="bil-month"]').first()).toBeVisible();
+  sansErreur(page);
+});
+
+test("analyse en thèmes : sommaire court, une page par thème, navigation", async ({ page }) => {
+  await ouvrir(page);
+  await page.evaluate(() => { location.hash = "stats"; });
+  await page.click('[data-act="statview"][data-v="more"]');
+  // le sommaire ne contient aucun graphique : seulement les thèmes et le bilan
+  await expect(page.locator("#view .ana-menu li")).toHaveCount(7);
+  await expect(page.locator("#view svg.chart")).toHaveCount(0);
+  await expect(page.locator('#view .ana-menu [data-v="save"] small')).toContainText("Épargne");
+  const themes = ["save", "chg", "when", "where", "fixed", "src"];
+  await page.click('[data-act="ana"][data-v="save"]');
+  for (let i = 0; i < themes.length; i++) {
+    await expect(page.locator("#view .ana-body .card").first()).toBeVisible();
+    expect(await page.evaluate(() => anaSel)).toBe(themes[i]);
+    if (i < themes.length - 1) await page.locator('#view .ana-nav [data-act="ana"]').last().click();
+  }
+  await expect(page.locator("#view .ana-t")).toContainText("Comptes et revenus");
+  await page.click('#view .ana-top [data-act="ana"]');
+  await expect(page.locator("#view .ana-menu")).toBeVisible();
+  // changer d'onglet puis revenir ramène au sommaire
+  await page.click('[data-act="ana"][data-v="when"]');
+  await page.click('[data-act="statview"][data-v="cat"]');
+  await page.click('[data-act="statview"][data-v="more"]');
+  await expect(page.locator("#view .ana-menu")).toBeVisible();
+  // le bilan imprimable est dans le sommaire
+  await page.click('#view .ana-menu a[href="#bilan"]');
+  await expect(page.locator('[data-act="bilmode"]').first()).toBeVisible();
+  sansErreur(page);
+});
+
+test("catégories : 6 premières, puis « afficher les autres » ; tableau par mois replié", async ({ page }) => {
+  await ouvrir(page);
+  await page.evaluate(() => { location.hash = "stats"; preset = "all"; setPreset("all"); render(); });
+  const n = await page.evaluate(() => Object.keys(flowsBetween(range.from, range.to, statF()).byTop.dep).length);
+  if (n > 7) {
+    await expect(page.locator("#view .rank")).toHaveCount(6);
+    await page.click('[data-act="cat-all"]');
+    await expect(page.locator("#view .rank")).toHaveCount(n);
+  }
+  await page.click('[data-act="statview"][data-v="months"]');
+  await expect(page.locator("#view table.mini")).toBeHidden();
+  await page.click("#view .tbl-more summary");
+  await expect(page.locator("#view table.mini")).toBeVisible();
   sansErreur(page);
 });
