@@ -413,7 +413,9 @@ function saveSplit(d) {
   if (!parts.length) return err(L("Saisissez un montant différent de zéro."), "p-amt-0");
   const ch = new Set(), grp = parts.length > 1 ? (d.grp || "g-" + uid()) : "", tg = parseTags(d.tagsS), bud0 = budSnap(d.date.slice(0, 7)); let key = "";
   (d.grp ? allTx().filter(t => t.grp === d.grp).map(t => t.id) : d.id ? [d.id] : []).forEach(id => { const m = removeTx(id); if (m) ch.add("tx-" + m); });
-  parts.forEach((pt, i) => { const x = {id: uid() + i, t: d.t, amt: pt.amt, acc: pt.acc, cat: pt.cat, date: d.date, note: d.note.trim()}; if (grp) x.grp = grp; if (pt.pn) x.pn = pt.pn; if (tg.length) x.tags = tg; if (d.photo) x.ph = 1; if (!key) key = grp || x.id; putTx(x).forEach(k => ch.add(k)); });
+  /* une échéance récurrente payée que l'on répartit reste « payée » : la 1re ligne garde son identifiant */
+  const keep = !d.grp && d.id && d.rec ? {id: d.id, rec: d.rec} : null;
+  parts.forEach((pt, i) => { const x = {id: i === 0 && keep ? keep.id : uid() + i, t: d.t, amt: pt.amt, acc: pt.acc, cat: pt.cat, date: d.date, note: d.note.trim()}; if (i === 0 && keep) x.rec = keep.rec; if (grp) x.grp = grp; if (pt.pn) x.pn = pt.pn; if (tg.length) x.tags = tg; if (d.photo) x.ph = 1; if (!key) key = grp || x.id; putTx(x).forEach(k => ch.add(k)); });
   phSave(d, key);
   touch(...ch); genie(closeSheet); month = d.date.slice(0, 7); showInOps(d.date); render();
   toast((parts.length > 1 ? L("Opération répartie en") + " " + parts.length + " " + L("lignes") : L("Opération ajoutée")) + budAlert(bud0, d.date.slice(0, 7)));

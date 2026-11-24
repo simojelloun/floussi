@@ -174,6 +174,9 @@ function saveTx() {
     return toast((d.id ? L("Récurrence modifiée") : L("Récurrence créée")) + (n ? ". " + plur(n, L("échéance ajoutée"), L("échéances ajoutées")) : ""));
   }
   const ids = [], ph = d.photo ? {ph: 1} : {}; let sid;
+  /* opération répartie ramenée à une seule ligne (case « Répartir » décochée, ou passage en virement) :
+     les autres lignes du groupe sont retirées, sinon elles resteraient comptées en plus */
+  if (d.id && d.grp) allTx().filter(t => t.grp === d.grp && t.id !== d.id).map(t => t.id).forEach(id => { const m = removeTx(id); if (m) ids.push("tx-" + m); });
   if (d.id && repOn && !d.rec) {
     const r = mkRec("rc-" + uid(), d.date, 1); S.meta.recurring.push(r);
     sid = d.id; ids.push("meta", ...putTx({...base0, ...ph, id: d.id, date: d.date, rec: r.id}, d.id));
