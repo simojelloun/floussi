@@ -185,7 +185,7 @@ document.addEventListener("change", async e => {
   if (id === "bal-date" && bal) { const i = bal.ser.findIndex(p => p.d === e.target.value); if (i >= 0) balShow(i); }
   if (nm === "pmode") { P.mode = e.target.value; savePrefs(); applyPrefs(); announce(L("Thème ") + e.target.nextElementSibling.textContent.toLowerCase()); }
   if (id === "lock-delay") { P.lock.delay = +e.target.value; savePrefs(); announce(e.target.selectedOptions[0].textContent); return; }
-  if (id === "lock-bio") { if (e.target.checked) { const ok = await bioRegister(); if (!ok) { e.target.checked = false; toast(L("Face ID n'a pas pu être activé ici.")); } else toast(L("Face ID activé")); } else { delete P.lock.bio; savePrefs(); toast(L("Face ID désactivé")); } return; }
+  if (id === "lock-bio") { const nm = bioName(); if (e.target.checked) { const ok = await bioRegister(); if (!ok) { e.target.checked = false; toast(nm + " " + L("n'a pas pu être activé ici.")); } else toast(nm + " " + L("activé")); } else { delete P.lock.bio; savePrefs(); toast(nm + " " + L("désactivé")); } return; }
   if (nm === "plang") { P.lang = e.target.value; savePrefs(); location.reload(); return; }
   if (nm === "pstyle") { P.style = e.target.value; savePrefs(); applyPrefs(); announce(L("Style ") + e.target.nextElementSibling.textContent.toLowerCase()); }
   if (nm === "paccent") { P.accent = e.target.value; savePrefs(); applyPrefs(); announce(L("Couleurs ") + THEMES[P.accent].name); }

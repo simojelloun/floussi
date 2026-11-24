@@ -7,7 +7,26 @@ const b64 = buf => btoa(String.fromCharCode(...new Uint8Array(buf)));
 const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
 let locked = false, pinBuf = "", pinFails = 0, lockUntil = 0, hiddenAt = 0, bioAvail = false;
 const afterUnlock = [];
-(async () => { try { bioAvail = !!(window.PublicKeyCredential && await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()); } catch (e) {} if (tab === "verrouillage") render(); if (locked) renderLock(); })();
+/* Dans la version installée (App Store / Google Play), Face ID et l'empreinte passent par le module natif
+   @capgo/capacitor-native-biometric ; dans le navigateur, par WebAuthn (passkey de l'appareil). */
+const NBIO = () => NP("NativeBiometric");
+let bioKind = "";
+(async () => {
+  try {
+    if (NATIVE) { const nb = NBIO(); if (nb) { const r = await nb.isAvailable({useFallback: false}); bioAvail = !!(r && r.isAvailable); bioKind = r && (r.biometryType === 2 || r.biometryType === 4) ? "face" : r && (r.biometryType === 1 || r.biometryType === 3) ? "finger" : ""; } }
+    else bioAvail = !!(window.PublicKeyCredential && await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable());
+  } catch (e) { bioAvail = false; }
+  if (tab === "verrouillage") render(); if (locked) { renderLock(); bioAuto(); }
+})();
+const bioName = () => bioKind === "face" ? (IS_APPLE ? L("Face ID") : L("Reconnaissance du visage")) : bioKind === "finger" ? (IS_APPLE ? L("Touch ID") : L("Empreinte digitale")) : L("Face ID ou l'empreinte");
+async function nativeVerify() {
+  const nb = NBIO(); if (!nb) return false;
+  try { await nb.verifyIdentity({reason: L("Déverrouiller Floussi"), title: L("Déverrouiller Floussi"), subtitle: "", description: "", negativeButtonText: L("Utiliser le code"), useFallback: false, maxAttempts: 3}); return true; }
+  catch (e) { return false; }
+}
+/* propose Face ID tout de suite à l'ouverture (version installée seulement : le navigateur exige un geste) */
+let bioTried = false;
+function bioAuto() { if (NATIVE && locked && P.lock && P.lock.bio && bioAvail && !bioTried) { bioTried = true; setTimeout(bioUnlock, 250); } }
 const FACE_SVG = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><path d="M9 9.5v1M15 9.5v1M12 9.5v3.5h-1M9.5 15.5c1.4 1.1 3.6 1.1 5 0"/></svg>`;
 function showLock() {
   if (!LOCK() || locked) return;
@@ -15,6 +34,7 @@ function showLock() {
   locked = true; pinBuf = "";
   const lk = $("#lock"); lk.hidden = false; $("#app").inert = true; $("#wrap").inert = true; $("#cal").inert = true;
   renderLock(); const h = $("#lock-t"); if (h) h.focus();
+  bioTried = false; bioAuto();
 }
 function renderLock(mode, msg) {
   const lk = $("#lock"), logo = ($(".brand .logo") || {}).outerHTML || "";
@@ -30,7 +50,7 @@ function renderLock(mode, msg) {
     <p class="lock-txt" id="lock-msg" aria-live="assertive">${esc(msg || L("Entrez votre code"))}</p>
     <div class="dots" id="dots" aria-hidden="true">${[...Array(n)].map((_, i) => `<i class="${i < pinBuf.length ? "on" : ""}"></i>`).join("")}</div>
     <p class="sr" id="lock-count" aria-live="polite"></p>
-    <div class="pad">${keys.map(k => !k ? "<span></span>" : `<button type="button" data-act="pin" data-k="${k}" aria-label="${esc(k === "del" ? L("Effacer le dernier chiffre") : k === "bio" ? L("Déverrouiller avec Face ID ou l'empreinte") : k)}">${k === "del" ? "⌫" : k === "bio" ? FACE_SVG : k}</button>`).join("")}</div>
+    <div class="pad">${keys.map(k => !k ? "<span></span>" : `<button type="button" data-act="pin" data-k="${k}" aria-label="${esc(k === "del" ? L("Effacer le dernier chiffre") : k === "bio" ? L("Déverrouiller avec") + " " + bioName() : k)}">${k === "del" ? "⌫" : k === "bio" ? FACE_SVG : k}</button>`).join("")}</div>
     <button type="button" class="lock-forgot" data-act="pin-forgot">${L("Code oublié ?")}</button></div>`;
 }
 function dotsUpdate() { document.querySelectorAll("#dots i").forEach((d, i) => d.classList.toggle("on", i < pinBuf.length)); const c = $("#lock-count"); if (c) c.textContent = pinBuf.length + " / " + P.lock.len; }
@@ -55,6 +75,7 @@ function unlock() {
   const fns = afterUnlock.splice(0); if (fns.length) fns.forEach(f => f()); else $("#title").focus();
 }
 async function bioRegister() {
+  if (NATIVE) { if (!(await nativeVerify())) return false; P.lock.bio = "natif"; savePrefs(); return true; }
   try {
     const cred = await navigator.credentials.create({publicKey: {challenge: crypto.getRandomValues(new Uint8Array(32)), rp: {name: "Floussi"},
       user: {id: crypto.getRandomValues(new Uint8Array(16)), name: "flousi", displayName: "Floussi"},
@@ -64,6 +85,7 @@ async function bioRegister() {
   } catch (e) { return false; }
 }
 async function bioUnlock() {
+  if (NATIVE) { if (!locked) return; if (await nativeVerify()) unlock(); else { const m = $("#lock-msg"); if (m) m.textContent = bioName() + " " + L("n'a pas abouti. Entrez votre code."); } return; }
   try {
     await navigator.credentials.get({publicKey: {challenge: crypto.getRandomValues(new Uint8Array(32)), allowCredentials: [{type: "public-key", id: unb64(P.lock.bio)}], userVerification: "required", timeout: 60000}});
     unlock();
@@ -92,7 +114,7 @@ function vVerrouillage() {
   return backLink("reglages") + `<div class="card" style="display:flex;flex-direction:column;gap:12px">
     <p style="margin:0;color:var(--ink-2)">${on ? L("Le code est activé : Floussi le demande à l'ouverture.") : L("Protégez l'accès à Floussi par un code de 4 à 6 chiffres.")}</p>
     ${on ? `<label class="f"><span>${L("Verrouiller quand l'appli passe en arrière-plan")}</span><select id="lock-delay">${delays.map(([v, l]) => `<option value="${v}" ${(P.lock.delay || 0) === v ? "selected" : ""}>${l}</option>`).join("")}</select></label>
-      ${bioAvail ? `<label class="check"><input type="checkbox" id="lock-bio" ${P.lock.bio ? "checked" : ""}><span>${L("Déverrouiller avec Face ID ou l'empreinte")}</span></label>` : `<p class="hint">${L("Face ID ou l'empreinte ne sont pas disponibles ici. Ils fonctionnent dans la version installée depuis GitHub.")}</p>`}
+      ${bioAvail ? `<label class="check"><input type="checkbox" id="lock-bio" ${P.lock.bio ? "checked" : ""}><span>${L("Déverrouiller avec")} ${esc(bioName())}</span></label>` : `<p class="hint">${NATIVE ? L("Face ID ou l'empreinte ne sont pas réglés sur ce téléphone. Activez-les dans les réglages du téléphone, puis revenez ici.") : L("Face ID ou l'empreinte ne sont pas disponibles ici. Ils fonctionnent dans la version installée depuis GitHub.")}</p>`}
       <div class="actions vert"><button type="button" class="btn" data-act="lock-now">${L("Verrouiller maintenant")}</button><button type="button" class="btn ghost" data-act="pin-change">${L("Changer le code")}</button><button type="button" class="btn danger" data-act="pin-off">${L("Désactiver le code")}</button></div>`
     : `<button type="button" class="btn" data-act="pin-on">${L("Activer le code")}</button>`}
     <p class="hint">${L("Le code protège l'accès à l'appli sur cet appareil. Il ne chiffre pas les données : gardez aussi votre téléphone verrouillé.")}</p></div>`;

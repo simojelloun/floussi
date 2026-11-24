@@ -11,7 +11,9 @@ if (existsSync(manifest)) {
   // Copie quotidienne dans Documents › Floussi : nécessaire seulement jusqu'à Android 10.
   const perms = [
     '<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="29" />',
-    '<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" />'
+    '<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" />',
+    // Déverrouillage par empreinte ou visage.
+    '<uses-permission android:name="android.permission.USE_BIOMETRIC" />'
   ];
   for (const p of perms) {
     const name = p.match(/android:name="([^"]+)"/)[1];
@@ -33,6 +35,8 @@ if (existsSync(plist)) {
     // Photos des tickets.
     ["NSCameraUsageDescription", "<string>Floussi utilise l'appareil photo uniquement pour photographier un ticket de caisse que vous joignez à une opération.</string>"],
     ["NSPhotoLibraryUsageDescription", "<string>Floussi accède à vos photos uniquement pour joindre l'image d'un ticket à une opération.</string>"],
+    // Déverrouillage par Face ID (sans ce texte, l'appli se fermerait à la première demande).
+    ["NSFaceIDUsageDescription", "<string>Floussi utilise Face ID uniquement pour déverrouiller l'appli à la place de votre code.</string>"],
     ["ITSAppUsesNonExemptEncryption", "<false/>"]
   ];
   for (const [k, v] of keys) if (!x.includes(`<key>${k}</key>`)) x = x.replace(/<\/dict>\s*<\/plist>\s*$/, `\t<key>${k}</key>\n\t${v}\n</dict>\n</plist>\n`);

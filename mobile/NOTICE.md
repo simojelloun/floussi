@@ -17,12 +17,12 @@ Si la mémoire de l'appli est perdue, Floussi relit automatiquement son fichier 
 
 **Important :** la version installée ne voit pas les données de la version web (ce sont deux applications séparées). Pour passer de l'une à l'autre : dans la version web, Réglages › Sauvegarde › Enregistrer une sauvegarde ; dans la version installée, Réglages › Sauvegarde › Restaurer une sauvegarde.
 
-Limite connue : Face ID / empreinte ne fonctionne pas encore dans la version installée (le code de verrouillage, lui, fonctionne). Il faudra ajouter un module dédié.
+Face ID, Touch ID et l'empreinte digitale fonctionnent dans la version installée grâce au module `@capgo/capacitor-native-biometric` (licence MPL-2.0, utilisé sans modification). Le téléphone fait lui-même la vérification : Floussi ne reçoit que « reconnu » ou « non reconnu ». Les autorisations nécessaires (texte Face ID sur iPhone, permission « biométrie » sur Android) sont ajoutées automatiquement par `scripts/configurer-natif.mjs`.
 
 ## Avant tout : deux choix définitifs
 
 Ouvrez `capacitor.config.json` :
-- `"appId": "com.floussi.app"` est l'identifiant unique de l'appli sur les stores. **Il ne pourra plus changer après la première publication.** Remplacez-le si vous le souhaitez par un identifiant à vous, par exemple `ma.votrenom.floussi` (lettres minuscules, points, pas d'espace ni d'accent). Faites-le **avant** l'étape 2.
+- `"appId": "io.github.simojelloun.floussi"` est l'identifiant unique de l'appli sur les stores (App Store : « Bundle ID » ; Google Play : « nom du package »). Il est construit à partir de votre adresse GitHub (simojelloun.github.io), qui vous appartient : aucune autre appli ne peut l'avoir. **Il ne pourra plus changer après la première publication.** Utilisez exactement le même dans App Store Connect et dans la Google Play Console.
 - `"appName": "Floussi"` est le nom affiché sous l'icône.
 
 ## 1. Installer les outils (une seule fois)
