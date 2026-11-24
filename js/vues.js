@@ -87,7 +87,7 @@ function updateSugs() {
   box.hidden = !box.innerHTML;
   if (exact && !d.catTouched && exact.cat) { const sel = $("#f-cat"); if (sel && sel.value !== exact.cat && [...sel.options].some(o => o.value === exact.cat)) { sel.value = exact.cat; d.cat = exact.cat; syncPk(sel); markTiles(); announce(L("Catégorie proposée : ") + catLabel(exact.cat)); } }
 }
-/* rappels : échéances des 7 prochains jours */
+/* rappels : échéances de demain (les retards sont dans overdue()) */
 function upcoming(days) {
   const t0 = today(), lim = addDays(t0, days), out = [];
   for (const r of S.meta.recurring) {
@@ -95,18 +95,47 @@ function upcoming(days) {
     for (let k = r.k, n = 0; n < 60; k++, n++) { const d = occ(r, k); if (d > lim || (r.end && d > r.end)) break; if (d > t0 && recState(r, d) === "due") out.push({date: d, kind: "rec", id: r.id, title: recTitle(r), amt: recSign(r), cls: r.t, chip: r.t === "vir" ? chipHtml(null, "⇄") : chipHtml(cat(r.cat))}); }
   }
   for (const l of S.meta.loans) {
-    if (!l.due || l.due > lim) continue; const st = loanState(l); if (st.done || st.rest <= 0) continue;
+    if (!l.due || l.due > lim || l.due < t0) continue; const st = loanState(l); if (st.done || st.rest <= 0) continue;
     out.push({date: l.due, kind: "loan", id: l.id, late: l.due < t0, title: (l.kind === "lent" ? L("Remboursement attendu de ") : L("Remboursement à ")) + l.person, amt: fmt(st.rest, l.cur), cls: l.kind === "lent" ? "rev" : "dep", chip: chipHtml(null, "🤝")});
   }
-  for (const x of darDue("*", lim)) out.push({date: x.date, kind: "dar", act: "dar-open", id: x.d.id, late: x.date < t0, title: x.d.name + " · " + (x.kind === "pay" ? L("ma cotisation") : L("je reçois la cagnotte")), amt: (x.kind === "pay" ? "−" : "+") + fmt(x.amt, x.c), cls: x.kind === "pay" ? "dep" : "rev", chip: chipHtml(null, "👪"),
+  for (const x of darDue(t0, lim)) out.push({date: x.date, kind: "dar", act: "dar-open", id: x.d.id, late: x.date < t0, title: x.d.name + " · " + (x.kind === "pay" ? L("ma cotisation") : L("je reçois la cagnotte")), amt: (x.kind === "pay" ? "−" : "+") + fmt(x.amt, x.c), cls: x.kind === "pay" ? "dep" : "rev", chip: chipHtml(null, "👪"),
     pay: `<button type="button" class="btn sm ghost paybtn" data-act="${x.kind === "pay" ? "dar-pay" : "dar-recv"}" data-id="${esc(x.d.id)}" data-k="${x.k}" aria-label="${esc((x.kind === "pay" ? L("Payer ma cotisation : ") : L("J'ai reçu la cagnotte : ")) + x.d.name + ", " + say(x.amt, x.c))}">✓ ${x.kind === "pay" ? L("Payée") : L("Reçue")}</button>`});
   return out.sort((a, b) => a.date.localeCompare(b.date));
 }
 function whenLabel(d) { const n = Math.round((new Date(d + "T12:00:00") - new Date(today() + "T12:00:00")) / 864e5); return n < 0 ? L("En retard") : n === 0 ? L("Aujourd'hui") : n === 1 ? L("Demain") : L("Dans ") + n + L(" jours"); }
 function upcomingBlock() {
-  const u = upcoming(7); if (!u.length) return "";
-  return `<div class="sec-h"><h2>${L("À venir")}</h2><small class="hint" style="margin:0">${L("7 prochains jours")}</small></div>
+  const u = upcoming(1); if (!u.length) return "";
+  return `<div class="sec-h"><h2>${L("À venir")}</h2><small class="hint" style="margin:0">${L("Jusqu'à demain")}</small></div>
     <ul class="card rows">${u.slice(0, 6).map(x => `<li class="${x.kind === "rec" || x.pay ? "with-pay" : ""}"><button type="button" class="row" data-act="${x.act || (x.kind === "rec" ? "edit-rec" : "loan")}" data-id="${esc(x.id)}" aria-label="${esc(x.title + ", " + x.amt.replace("−", L("moins") + " ") + ", " + whenLabel(x.date) + ", " + longDate(x.date))}">${x.chip}<span class="t"><b>${esc(x.title)}</b><small><span class="when${x.late || x.date <= addDays(today(), 2) ? " soon" : ""}">${whenLabel(x.date)}</span> · ${dm(x.date)}</small></span><span class="amt ${x.cls}">${esc(x.amt)}</span></button>${x.kind === "rec" ? `<button type="button" class="btn sm ghost paybtn" data-act="rec-pay" data-id="${esc(x.id)}" data-d="${x.date}" aria-label="${esc((x.cls === "rev" ? L("Marquer reçue : ") : L("Marquer payée : ")) + x.title + L(" du ") + longDate(x.date))}">✓ ${(x.cls === "rev" ? L("Reçue") : L("Payée"))}</button>` : x.pay || ""}</li>`).join("")}</ul>`;
+}
+/* échéances dépassées : récurrentes non payées, remboursements de prêts, cotisations de daret */
+function overdue() {
+  const t0 = today(), out = [];
+  for (const {r, ds} of pendingRecs()) { const late = ds.filter(x => x.date < t0); if (!late.length) continue;
+    out.push({date: late[0].date, n: late.length, kind: "rec", id: r.id, title: recTitle(r), amt: recSign(r), cls: r.t, chip: r.t === "vir" ? chipHtml(null, "⇄") : chipHtml(cat(r.cat))}); }
+  for (const l of S.meta.loans) { if (!l.due || l.due >= t0) continue; const st = loanState(l); if (st.done || st.rest <= 0) continue;
+    out.push({date: l.due, kind: "loan", id: l.id, title: (l.kind === "lent" ? L("Remboursement attendu de ") : L("Remboursement à ")) + l.person, amt: fmt(st.rest, l.cur), cls: l.kind === "lent" ? "rev" : "dep", chip: chipHtml(null, "🤝")}); }
+  for (const x of darDue("*", addDays(t0, -1))) out.push({date: x.date, kind: "dar", id: x.d.id, k: x.k, pk: x.kind, title: x.d.name + " · " + (x.kind === "pay" ? L("ma cotisation") : L("je reçois la cagnotte")), amt: (x.kind === "pay" ? "−" : "+") + fmt(x.amt, x.c), cls: x.kind === "pay" ? "dep" : "rev", chip: chipHtml(null, "👪"), sayAmt: say(x.amt, x.c), dname: x.d.name});
+  return out.sort((a, b) => a.date.localeCompare(b.date));
+}
+const lateSince = d => { const n = Math.round((new Date(today() + "T12:00:00") - new Date(d + "T12:00:00")) / 864e5); const [y, m, x] = d.split("-").map(Number); return L("En retard") + " · " + plur(n, L("jour"), L("jours")) + " · " + new Intl.DateTimeFormat(LOCALE, {day: "numeric", month: "short"}).format(new Date(y, m - 1, x)); };
+function overdueBlock() {
+  const o = overdue(); if (!o.length) return "";
+  const row = x => {
+    const paid = x.cls === "rev" ? L("Reçue") : L("Payée"), more = x.n > 1 ? L(", et ") + plur(x.n - 1, L("autre échéance"), L("autres échéances")) : "";
+    const acts = x.kind === "rec" ? `<button type="button" class="btn sm ghost" data-act="rec-skip" data-id="${esc(x.id)}" data-d="${x.date}" aria-label="${esc(L("Ignorer ") + x.title + L(" du ") + longDate(x.date))}">${L("Ignorer")}</button><button type="button" class="btn sm" data-act="rec-ok" data-id="${esc(x.id)}" data-d="${x.date}" aria-label="${esc((x.cls === "rev" ? L("Marquer reçue : ") : L("Marquer payée : ")) + x.title + L(" du ") + longDate(x.date))}">✓ ${paid}</button>`
+      : x.kind === "dar" ? `<button type="button" class="btn sm ghost" data-act="dar-open" data-id="${esc(x.id)}">${L("Voir la daret")}</button><button type="button" class="btn sm" data-act="${x.pk === "pay" ? "dar-pay" : "dar-recv"}" data-id="${esc(x.id)}" data-k="${x.k}" aria-label="${esc((x.pk === "pay" ? L("Payer ma cotisation : ") : L("J'ai reçu la cagnotte : ")) + x.dname + ", " + x.sayAmt)}">✓ ${x.pk === "pay" ? L("Payer") : L("J'ai reçu")}</button>`
+      : `<button type="button" class="btn sm" data-act="loan" data-id="${esc(x.id)}">${L("Enregistrer un remboursement")}</button>`;
+    return `<li class="pend"><div class="top-l">${x.chip}<div class="t"><b>${esc(x.title)}</b><small><span class="when soon">${esc(lateSince(x.date))}</span>${esc(more)}</small></div><span class="amt ${x.cls === "rev" ? "rev" : x.cls === "vir" ? "mv" : "dep"}">${esc(x.amt)}</span></div><div class="pend-act">${acts}</div></li>`;
+  };
+  return `<section class="card late-box" aria-labelledby="late-t"><div class="late-h"><span class="late-ic" aria-hidden="true">!</span><div><h2 id="late-t">${plur(o.length, L("échéance dépassée"), L("échéances dépassées"))}</h2><small>${L("Réglez-les, ou ignorez-les si elles n'ont plus lieu d'être.")}</small></div></div><ul class="rows">${o.slice(0, 3).map(row).join("")}</ul>${o.length > 3 ? `<details class="late-more" data-fold="late" ${P.fold && P.fold.late ? "open" : ""}><summary>${L("Voir les ")}${o.length - 3}${L(" autres")}</summary><ul class="rows">${o.slice(3).map(row).join("")}</ul></details>` : ""}</section>`;
+}
+/* rappel à l'ouverture (une fois par jour) */
+function remindLate() {
+  if (demo || P.lateSeen === today()) return;
+  if (locked) { if (!afterUnlock.some(f => f.late)) { const f = () => { $("#title").focus(); setTimeout(remindLate, 400); }; f.late = 1; afterUnlock.push(f); } return; }
+  const n = overdue().length; if (!n) return;
+  P.lateSeen = today(); savePrefs(); toast(L("Rappel : ") + plur(n, L("échéance dépassée"), L("échéances dépassées")) + L(", à voir sur l'Accueil."));
 }
 const addDays = (d, n) => { const [y, m, x] = d.split("-").map(Number); return ymd(new Date(y, m - 1, x + n)); };
 /* alerte de budget au moment d'enregistrer */
@@ -229,8 +258,8 @@ function curSeg(list) {
 }
 const banner = () => demo ? `<div class="banner" role="note"><span><b>${L("Ce sont des données d'exemple.")}</b>${L(" Explorez librement : rien n'est enregistré tant que vous n'avez pas commencé.")}</span><button type="button" class="btn" data-act="start">${L("Commencer avec mes comptes")}</button></div>` : "";
 
-function pendingBlock(limit) {
-  const pl = pendingRecs(); if (!pl.length) return "";
+function pendingBlock(limit, todayOnly) {
+  const t0 = today(), pl = todayOnly ? pendingRecs().map(x => ({r: x.r, ds: x.ds.filter(d => d.date === t0)})).filter(x => x.ds.length) : pendingRecs(); if (!pl.length) return "";
   const shown = limit ? pl.slice(0, limit) : pl;
   return `<div class="sec-h"><h2>${L("À payer")}</h2>${limit && pl.length > limit ? `<a class="link" href="#recurrentes">${L("Tout voir (")}${pl.length})</a>` : ""}</div>
     <ul class="card rows">${shown.map(({r, ds}) => {
@@ -260,7 +289,7 @@ function vAccueil() {
   const recent = allTx().sort((a, b) => b.date.localeCompare(a.date)).slice(0, 6);
   const fold = (key, title, extra, body, defOpen) => { const o = P.fold && key in P.fold ? P.fold[key] : defOpen; return `<details class="fold" data-fold="${key}" ${o ? "open" : ""}><summary><span class="ft">${title}</span>${extra ? `<span class="fx">${extra}</span>` : ""}<span class="chev" aria-hidden="true">›</span></summary><div class="fold-b">${body}</div></details>`; };
   const overviewBody = overview ? overview.slice(overview.indexOf('<div class="card">')) : "";
-  return `<section class="ledger ${list.length === 1 ? "one" : ""}" aria-label="${L("Soldes par devise")}">${list.map(colH).join("")}</section>` + accCards() + quickBlock() + banner() + dailyBlock() + (overviewBody ? fold("overview", L("Vue d'ensemble en ") + esc(plural(oc)), `<span class="num">${fmt(net, oc)}</span>`, overviewBody, false) : "") + pendingBlock(3) + upcomingBlock() +
+  return `<section class="ledger ${list.length === 1 ? "one" : ""}" aria-label="${L("Soldes par devise")}">${list.map(colH).join("")}</section>` + overdueBlock() + accCards() + quickBlock() + banner() + dailyBlock() + (overviewBody ? fold("overview", L("Vue d'ensemble en ") + esc(plural(oc)), `<span class="num">${fmt(net, oc)}</span>`, overviewBody, false) : "") + pendingBlock(3, true) + upcomingBlock() +
     `<div class="sec-h"><h2>${L("Dernières opérations")}</h2><a class="link" href="#operations">${L("Toutes les opérations")}</a></div><div class="card">${recent.length ? `<ul class="rows">${recent.slice(0, 5).map(t => txRow(t, true)).join("")}</ul>` : `<p class="empty">${L("Aucune opération. Utilisez le bouton Ajouter une opération pour saisir la première.")}</p>`}</div>` +
     (al.length ? fold("budgets", L("Budgets à surveiller"), `<span class="state ${al.some(x => x.s.cls === "crit") ? "crit" : "warn"}">${al.length}</span>`, `<ul class="card rows">${al.map(x => `<li class="alert"><span>${esc(catLabel(x.b.cat))} <small class="num" style="color:var(--muted)">${fmt(x.s.spent, x.b.cur)}${L(" sur ")}${fmt(x.b.limit, x.b.cur)}</small></span><span class="state ${x.s.cls}">${x.s.label}</span></li>`).join("")}</ul><a class="link" href="#budgets">${L("Voir les budgets")}</a>`, true) : "") +
     fold("accounts", L("Tous les comptes"), plur(S.meta.accounts.length, L("compte"), L("comptes")), `<ul class="card rows">${accSorted().map(a => `<li><button type="button" class="row" data-act="acc-ops" data-id="${esc(a.id)}" aria-label="${esc(a.name + L(", solde ") + say(balance(a), a.cur) + ". " + L("Voir les opérations"))}">${accChip(a)}<span class="t"><b>${esc(a.name)}</b></span><span class="amt">${fmt(balance(a), a.cur)}</span></button></li>`).join("")}</ul><a class="link" href="#comptes">${L("Gérer les comptes")}</a>`, false) +

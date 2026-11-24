@@ -282,7 +282,7 @@ fieldset > legend,.f > span,.f > label{font-size:12px;font-weight:600;color:var(
 .amount-in{font-family:var(--display);font-size:26px !important;font-weight:700;font-variant-numeric:tabular-nums}
 .check{display:flex;gap:10px;align-items:center;font-size:14px;min-height:40px;cursor:pointer}
 .check input{width:20px;height:20px;accent-color:var(--accent);flex:none}
-.boxed{border:1px solid var(--line);border-radius:14px;padding:12px;background:var(--surface);display:flex;flex-direction:column;gap:10px}
+.boxed{border:1px solid var(--line);border-radius:14px;padding:12px;background:var(--surface);display:flex;flex-direction:column;gap:10px;min-width:0}
 .err{color:var(--crit);font-size:13px;font-weight:500}
 .err:empty{display:none}
 .actions{display:flex;gap:8px;flex-wrap:wrap}
@@ -371,6 +371,7 @@ li.sw.swiping > .row{border-radius:12px}
 .amtrow{display:flex;gap:8px;align-items:stretch}.amtrow input{flex:1;min-width:0}
 .signb{width:48px;flex:none;border-radius:11px;border:1px solid var(--line);background:var(--surface);font-size:20px;font-weight:700;color:var(--accent)}
 .part .pnote{grid-column:1 / -1}
+.part .f{min-width:0}.part select,.part .pk-btn{max-width:100%;min-width:0}
 /* davantage de couleurs */
 #app{background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 11%,var(--bg)),var(--bg) 300px)}
 nav.tabs a:nth-child(1){--tc:var(--accent)}nav.tabs a:nth-child(2){--tc:#2a78d6}nav.tabs a:nth-child(3){--tc:#6250d6}nav.tabs a:nth-child(4){--tc:#eb6834}nav.tabs a:nth-child(5){--tc:#1baf7a}nav.tabs a:nth-child(6){--tc:#d9548a}
@@ -415,9 +416,10 @@ li.grp > .row{border-bottom:0}
 .gsub .row{padding:8px 0}
 .rows > li.grp:not(:last-child){border-bottom:1px solid var(--line)}
 /* répartition */
-.part{display:grid;grid-template-columns:1fr 1fr;gap:8px;position:relative;padding-bottom:12px;border-bottom:1px dashed var(--line)}
+.part{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;position:relative;padding-bottom:12px;border-bottom:1px dashed var(--line)}
 .part > .f:first-child{grid-column:1 / -1}
 .pdel{position:absolute;inset-inline-end:0;top:-6px;width:34px;height:34px;border-radius:50%;font-size:20px;color:var(--crit)}
+@media (max-width:480px){.part{grid-template-columns:minmax(0,1fr)}}
 .ptotal{margin:0;font-weight:700;text-align:end}
 /* analyse */
 .tiles:not(.two) .tile:nth-child(1){border-top:3px solid var(--s1)}.tiles:not(.two) .tile:nth-child(2){border-top:3px solid var(--s2)}.tiles:not(.two) .tile:nth-child(3){border-top:3px solid var(--accent)}
@@ -471,6 +473,14 @@ div.rank{display:grid}
 .srch-info{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:-8px;font-size:13px}
 .tag-sum{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 16px}
 .when.soon{color:var(--warn,#b26a00);font-weight:700}
+/* échéances dépassées (Accueil) */
+.late-box{border:1.5px solid color-mix(in srgb,var(--crit) 55%,transparent);background:color-mix(in srgb,var(--crit) 6%,var(--surface))}
+.late-h{display:flex;gap:12px;align-items:flex-start;margin-bottom:4px}
+.late-h h2{margin:0;font-size:17px;color:var(--crit)}.late-h small{color:var(--muted);font-size:12.5px}
+.late-ic{flex:none;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--crit);color:#fff;font-weight:800;font-size:16px}
+.late-box .when.soon{color:var(--crit)}
+.late-box .pend:last-child{border-bottom:0;padding-bottom:0}
+.late-more summary{cursor:pointer;color:var(--crit);font-weight:700;font-size:14px;padding:10px 0 2px;list-style:none}.late-more summary::-webkit-details-marker{display:none}.late-more summary::after{content:" ▾"}.late-more[open] summary::after{content:" ▴"}.late-more[open] summary{border-bottom:1px solid var(--line);padding-bottom:8px}
 .bil-link{justify-content:flex-start;min-height:44px;font-weight:600;color:var(--ink)}
 .period.static{cursor:default;pointer-events:none}
 .tile .evo{display:block;font-size:11px;color:var(--muted);margin-top:4px;text-transform:none;letter-spacing:0;font-weight:600}.tile .evo.pos{color:var(--pos,#1a7f4b)}.tile .evo.neg{color:var(--neg,#c0392b)}

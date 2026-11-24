@@ -73,11 +73,11 @@ test("suivi des versements des membres, gardé après rechargement", async ({ pa
 
 test("cotisation due : dans « À venir », dans le calendrier, et l'opération ouvre la daret", async ({ page }) => {
   await ouvrir(page);
-  await creer(page, { debut: await page.evaluate(() => addDays(today(), 2)) });
+  await creer(page, { debut: await page.evaluate(() => addDays(today(), 1)) });
   await page.evaluate(() => { location.hash = "accueil"; });
   await expect(page.locator('#view [data-act="dar-pay"]').first()).toBeVisible();
-  await page.evaluate(() => { P.opView = "cal"; calM = addDays(today(), 2).slice(0, 7); calDay = addDays(today(), 2); location.hash = "operations"; render(); });
-  await expect(page.locator(`.mc-d[data-d="${await page.evaluate(() => addDays(today(), 2))}"] .dt.due`)).toHaveCount(1);
+  await page.evaluate(() => { P.opView = "cal"; calM = addDays(today(), 1).slice(0, 7); calDay = addDays(today(), 1); location.hash = "operations"; render(); });
+  await expect(page.locator(`.mc-d[data-d="${await page.evaluate(() => addDays(today(), 1))}"] .dt.due`)).toHaveCount(1);
   await page.locator('#view [data-act="dar-pay"]').first().click();
   expect(await toast(page)).toContain("Cotisation payée");
   await page.evaluate(() => openTx(allTx().find(t => t.dar)));

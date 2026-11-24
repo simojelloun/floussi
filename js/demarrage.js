@@ -6,6 +6,7 @@ if (!NATIVE && "serviceWorker" in navigator && location.protocol.startsWith("htt
 applyStatic(); cur = base(); setPreset("month"); setSync("local"); runAuto(true);
 if (LOCK()) showLock();
 route(); initRemote();
+setTimeout(remindLate, 1200);
 const ACT = (() => { try { return new URLSearchParams(location.search).get("action"); } catch (e) { return null; } })();
 if (ACT === "dep" || ACT === "rev") {
   try { history.replaceState(null, "", location.pathname + location.hash); } catch (e) {}

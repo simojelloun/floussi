@@ -252,5 +252,5 @@ document.addEventListener("keydown", e => {
 document.addEventListener("keydown", e => { if (e.key === "Escape" && $("#phv") && !$("#phv").hidden) { e.preventDefault(); return closePhoto(); } if (e.key === "Escape" && !$("#wrap").hidden) closeSheet(); });
 window.addEventListener("beforeprint", () => document.documentElement.setAttribute("data-mode", "light"));
 window.addEventListener("afterprint", () => applyPrefs());
-document.addEventListener("visibilitychange", () => { if (!document.hidden && S && lastAuto !== today()) { if (runAuto()) render(); } });
+document.addEventListener("visibilitychange", () => { if (!document.hidden && S) { if (lastAuto !== today() && runAuto()) render(); setTimeout(remindLate, 600); } });
 window.addEventListener("hashchange", () => { closeSheet(); route(); });
