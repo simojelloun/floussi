@@ -742,7 +742,7 @@ function vCategories() {
 function vApparence() {
   const radio = (name, v, label, cur) => `<label><input type="radio" name="${name}" id="${name}-${v}" value="${v}" ${cur === v ? "checked" : ""}><span>${label}</span></label>`;
   return backLink("reglages") + `<form class="card" style="display:flex;flex-direction:column;gap:16px" onsubmit="return false">
-    <fieldset><legend>${L("Langue")}</legend><div class="seg wide">${radio("plang", "fr", '<bdi lang="fr">Français</bdi>', LANG)}${radio("plang", "en", '<bdi lang="en">English</bdi>', LANG)}${radio("plang", "ar", '<bdi lang="ar">العربية</bdi>', LANG)}</div>
+    <fieldset><legend>${L("Langue")}</legend><div class="seg wide">${radio("plang", "fr", '<bdi lang="fr">Français</bdi>', LANG)}${radio("plang", "en", '<bdi lang="en">English</bdi>', LANG)}${radio("plang", "es", '<bdi lang="es">Español</bdi>', LANG)}${radio("plang", "ar", '<bdi lang="ar">العربية</bdi>', LANG)}</div>
       <small class="hint">${L("Le changement de langue recharge l'appli. Les noms que vous avez saisis (comptes, catégories, notes) ne sont pas traduits.")}</small></fieldset>
     <fieldset><legend>${L("Thème")}</legend><div class="seg wide">${radio("pmode", "auto", L("Automatique"), P.mode)}${radio("pmode", "light", L("Clair"), P.mode)}${radio("pmode", "dark", L("Sombre"), P.mode)}</div>
       <small class="hint">${L("Automatique suit le réglage de votre téléphone ou de l'application Claude.")}</small></fieldset>

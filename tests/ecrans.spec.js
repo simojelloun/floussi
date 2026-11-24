@@ -2,7 +2,7 @@
 const { test, expect } = require("@playwright/test");
 const { ouvrir, sansErreur } = require("./aide");
 
-for (const lang of ["fr", "en", "ar"]) {
+for (const lang of ["fr", "en", "es", "ar"]) {
   test(`tous les écrans s'affichent (${lang})`, async ({ page }) => {
     await ouvrir(page, lang);
     const ecrans = await page.evaluate(() => Object.keys(VIEWS));

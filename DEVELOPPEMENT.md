@@ -23,7 +23,7 @@ Les fichiers `js/` sont chargés **dans l'ordre de `index.html`** et partagent l
 
 | Fichier | Contenu |
 |---|---|
-| `traductions.js` | textes anglais et arabe, indexés par le texte français (données) |
+| `traductions.js` | textes anglais, espagnol et arabe, indexés par le texte français (données) |
 | `langues.js` | langue choisie, fonction `L("texte")` |
 | `utilitaires.js` | dates, montants, petites fonctions communes |
 | `preferences.js` | réglages de l'appareil (`P`, clé `carnet-prefs`) : thème, langue, couleurs |
@@ -52,7 +52,7 @@ Les fichiers `js/` sont chargés **dans l'ordre de `index.html`** et partagent l
 
 1. **Ne jamais changer l'emplacement des données** : `localStorage` `carnet-comptes-v1` et `carnet-prefs`, base IndexedDB `flousi`, fichier natif `floussi/donnees.json`. Sinon les données des utilisateurs ne sont plus retrouvées. (Vérifié par `npm test`.)
 2. **Ajouter des champs aux données, ne jamais en retirer ni en renommer.** Toute nouvelle donnée doit avoir une valeur par défaut dans `migrate()` (`js/donnees.js`), pour que les anciennes sauvegardes s'ouvrent.
-3. **Tout texte visible s'écrit `L("texte en français")`** et reçoit sa traduction anglaise et arabe dans `js/traductions.js`. (Vérifié par `npm test`.)
+3. **Tout texte visible s'écrit `L("texte en français")`** et reçoit sa traduction anglaise, espagnole et arabe dans `js/traductions.js`. (Vérifié par `npm test`.)
 4. **Un nouveau fichier `js/` s'ajoute dans `index.html` ET dans `FILES` de `sw.js`.** Le code exécuté au chargement d'un fichier ne doit utiliser que ce qui est défini avant lui. (Vérifié par `npm test`.)
 5. **Toute action passe par `data-act="…"`** et se traite dans `js/evenements.js` : pas de `onclick` dans le HTML.
 6. **Accessibilité** : chaque bouton a un texte ou un `aria-label`, chaque geste a un équivalent par bouton, les messages importants passent par `announce()`.
@@ -83,7 +83,7 @@ Ensuite :
 - `npm run test:rapide` : seulement les vérifications sans navigateur (traductions, ordre des fichiers, emplacements des données).
 - `npm run serveur` : ouvre l'appli sur http://localhost:8080 pour l'essayer.
 
-Ce que les tests vérifient : chaque écran s'affiche sans erreur en français, anglais et arabe ; saisie d'opérations (sous-catégories, virement entre devises, répartition, modèles, étiquettes, photo, alerte de budget) ; récurrentes payées / impayées et calendrier ; enregistrement, reprise depuis la copie de secours, sauvegarde / restauration, ouverture d'anciennes données ; version installée simulée ; recherche, statistiques, bilan.
+Ce que les tests vérifient : chaque écran s'affiche sans erreur en français, anglais, espagnol et arabe ; saisie d'opérations (sous-catégories, virement entre devises, répartition, modèles, étiquettes, photo, alerte de budget) ; récurrentes payées / impayées et calendrier ; enregistrement, reprise depuis la copie de secours, sauvegarde / restauration, ouverture d'anciennes données ; version installée simulée ; recherche, statistiques, bilan.
 
 ## 5. Mise en ligne
 

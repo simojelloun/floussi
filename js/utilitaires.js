@@ -7,8 +7,10 @@ const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 
 const pad = n => String(n).padStart(2, "0");
 const ymd = d => d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
 const today = () => ymd(new Date());
-const NF = new Intl.NumberFormat(LOCALE, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-const NF4 = new Intl.NumberFormat(LOCALE, {minimumFractionDigits: 2, maximumFractionDigits: 4});
+/* en espagnol, Intl ne groupe pas les milliers à 4 chiffres (« 1234,56 ») : on force le séparateur pour que les montants restent alignés */
+const GRP = LANG === "es" ? "always" : true;
+const NF = new Intl.NumberFormat(LOCALE, {minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: GRP});
+const NF4 = new Intl.NumberFormat(LOCALE, {minimumFractionDigits: 2, maximumFractionDigits: 4, useGrouping: GRP});
 function parseNum(s) { const v = parseFloat(String(s).replace(/[\s  ]/g, "").replace(",", ".")); return isFinite(v) ? v : NaN; }
 const parseAmt = s => parseLoose(s);
 const plain = c => (c / 100).toFixed(2).replace(".", DEC);

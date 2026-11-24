@@ -22,7 +22,7 @@ for (const f of jsFiles) {
   const src = read("js/" + f);
   for (const m of src.matchAll(/\bL\(\s*"((?:[^"\\]|\\.)*)"\s*\)/g)) {
     const fr = JSON.parse('"' + m[1] + '"').trim(); if (!fr) continue;
-    for (const lang of ["en", "ar"]) if (!(fr in D[lang])) missing.set(lang + ":" + fr, f);
+    for (const lang of ["en", "es", "ar"]) if (!(fr in D[lang])) missing.set(lang + ":" + fr, f);
   }
 }
 for (const [k, f] of missing) fail(`traduction manquante (${k.slice(0, 2)}) dans ${f} : « ${k.slice(3)} »`);

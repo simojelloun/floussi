@@ -21,7 +21,7 @@ Floussi est une application web sans serveur ni compte à créer : les données 
 - **Import CSV** (relevés bancaires, Excel), avec correspondance des colonnes et détection des doublons.
 - **Export CSV** pour Excel.
 - **Sauvegarde et restauration** complètes dans un fichier `.json`.
-- **Trois langues** : français, anglais et arabe, avec mise en page de droite à gauche pour l'arabe (Réglages › Apparence › Langue).
+- **Quatre langues** : français, anglais, espagnol et arabe, avec mise en page de droite à gauche pour l'arabe (Réglages › Apparence › Langue).
 - **Apparence** : thème clair, sombre ou automatique, style classique ou verre liquide, six jeux de couleurs.
 - **Accessibilité** : la navigation est pensée pour les lecteurs d'écran (NVDA, TalkBack, VoiceOver). Les gestes (balayer, glisser) ont tous une alternative par bouton. L'appli est structurée en titres et en listes, chaque élément porte une description parlée, les annonces sont vocales, les fenêtres retiennent le focus et chaque graphique a un équivalent textuel.
 - **Hors connexion** : une fois ouverte, l'appli fonctionne sans réseau et s'installe sur l'écran d'accueil.
