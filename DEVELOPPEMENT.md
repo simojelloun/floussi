@@ -42,6 +42,7 @@ Les fichiers `js/` sont chargés **dans l'ordre de `index.html`** et partagent l
 | `import-csv.js` | import de relevés |
 | `sauvegarde.js` | sauvegarde, restauration, export |
 | `zoom.js` | zoom des graphiques |
+| `plein-ecran.js` | graphiques en plein écran |
 | `routes.js` | table des écrans (`#accueil` → `vAccueil`) |
 | `evenements.js` | clics, saisies, clavier (`data-act="…"`) |
 | `gestes.js` | balayer pour supprimer, glisser pour trier |

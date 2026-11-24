@@ -7,13 +7,13 @@
    - Polices et images : cache d'abord (elles ne changent presque jamais).
    - Tout fichier chargé par index.html doit figurer dans FILES (vérifié par « npm test »).
    - Changer VERSION à chaque mise en ligne nettoie les anciens caches (conseillé, pas obligatoire). */
-const VERSION = "37";
+const VERSION = "38";
 const CACHE = "floussi-" + VERSION;
 const FILES = ["./", "index.html", "manifest.webmanifest", "confidentialite.html",
   "css/polices.css", "css/app.css",
   "js/traductions.js", "js/langues.js", "js/utilitaires.js", "js/preferences.js", "js/icones.js", "js/devises-categories.js", "js/donnees.js",
   "js/calculs.js", "js/recurrentes.js", "js/vues.js", "js/rendu.js", "js/calendrier.js", "js/verrouillage.js", "js/previsions.js", "js/listes.js",
-  "js/saisie.js", "js/import-csv.js", "js/sauvegarde.js", "js/zoom.js", "js/zakat.js", "js/daret.js", "js/routes.js", "js/evenements.js", "js/gestes.js", "js/demarrage.js",
+  "js/saisie.js", "js/import-csv.js", "js/sauvegarde.js", "js/zoom.js", "js/plein-ecran.js", "js/zakat.js", "js/daret.js", "js/routes.js", "js/evenements.js", "js/gestes.js", "js/demarrage.js",
   "icon.svg", "icon-192.png", "icon-512.png", "maskable-512.png", "apple-touch-icon.png", "apple-touch-icon.png?v=2", "icon-192.png?v=2", "icon-512.png?v=2", "maskable-512.png?v=2",
   "raccourci-depense.png", "raccourci-revenu.png", "raccourci-stats.png",
   "fonts/bricolage-grotesque.woff2", "fonts/figtree-400.woff2", "fonts/figtree-500.woff2", "fonts/figtree-600.woff2",
