@@ -188,7 +188,7 @@ function vBilan() {
   if (!isPro()) return backLink("stats") + proTeaser(L("Bilan du mois en PDF"), L("Un résumé clair du mois, à imprimer ou à garder en PDF."), "bilan");
   const modeSeg = `<div class="seg wide noprint" role="group" aria-label="${esc(L("Bilan"))}"><button type="button" data-act="bilmode" data-v="m" aria-pressed="${bilMode !== "y"}">${L("Mois")}</button><button type="button" data-act="bilmode" data-v="y" aria-pressed="${bilMode === "y"}">${L("Année")}</button></div>`;
   const printBtn = `<div class="actions noprint"><button type="button" class="btn" data-act="print"><span aria-hidden="true">🖨</span> ${L("Imprimer ou enregistrer en PDF")}</button></div>
-    <p class="hint noprint">${L("Dans la fenêtre d'impression, choisissez « Enregistrer au format PDF ». Sur iPhone : touchez Imprimer, puis le bouton Partager pour l'enregistrer dans Fichiers ou l'envoyer.")}</p>`;
+    <p class="hint noprint">${L("Dans la fenêtre d'impression, choisissez « Enregistrer au format PDF ».") + (IS_APPLE ? " " + L("Sur iPhone : touchez Imprimer, puis le bouton Partager pour l'enregistrer dans Fichiers ou l'envoyer.") : "")}</p>`;
   if (bilMode === "y") { const F = statF(); return backLink("stats") + modeSeg + vBilanYear(F, F.out) + printBtn; }
   const F = statF(), dc = F.out, ym = bilM, from = ym + "-01", to = lastDay(ym), f = flowsBetween(from, to, F), pf = flowsBetween(shiftMonth(ym, -1) + "-01", lastDay(shiftMonth(ym, -1)), F);
   const net = f.rev - f.dep, rate = f.rev > 0 ? Math.round(net / f.rev * 100) : null;
@@ -219,7 +219,7 @@ function vBilan() {
     <p class="hint">${L("Bilan établi le ")}${longDate(today())}${F.ids.some(id => acc(id).cur !== dc) ? ". " + L("Montants convertis en") + " " + esc(plural(dc)) + " " + L("au cours saisi dans les Réglages.") : "."}</p>
     </div>
     <div class="actions noprint"><button type="button" class="btn" data-act="print"><span aria-hidden="true">🖨</span> ${L("Imprimer ou enregistrer en PDF")}</button></div>
-    <p class="hint noprint">${L("Dans la fenêtre d'impression, choisissez « Enregistrer au format PDF ». Sur iPhone : touchez Imprimer, puis le bouton Partager pour l'enregistrer dans Fichiers ou l'envoyer.")}</p>`;
+    <p class="hint noprint">${L("Dans la fenêtre d'impression, choisissez « Enregistrer au format PDF ».") + (IS_APPLE ? " " + L("Sur iPhone : touchez Imprimer, puis le bouton Partager pour l'enregistrer dans Fichiers ou l'envoyer.") : "")}</p>`;
 }
 /* catégories de dépenses qui ont le plus augmenté ou baissé par rapport à la période d'avant */
 function changesBlock(f, pf, dc, k) {
@@ -996,7 +996,7 @@ function vTransfert() {
     <h2 class="sec-h">${L("Sur l'ancien téléphone")}</h2>
     <ol class="card plain tr-steps">
       ${step(1, L("Préparer le transfert"), `<p class="hint">${L("Floussi crée un fichier qui contient tout : comptes, opérations, catégories, budgets, prêts, daret, récurrences et photos des tickets.")}</p><button type="button" class="btn" data-act="transfer-prep">📤 ${L("Préparer le transfert")}</button>`)}
-      ${step(2, L("Envoyer le fichier vers le nouveau téléphone"), `<p class="hint">${L("Par e-mail, WhatsApp, AirDrop, ou en l'enregistrant dans iCloud Drive ou Google Drive.")}${P.lastBackup ? " " + L("Dernière sauvegarde : ") + longDate(P.lastBackup) + "." : ""}</p>`)}
+      ${step(2, L("Envoyer le fichier vers le nouveau téléphone"), `<p class="hint">${L("Par e-mail, par messagerie, ou en l'enregistrant dans un espace de stockage en ligne.")}${P.lastBackup ? " " + L("Dernière sauvegarde : ") + longDate(P.lastBackup) + "." : ""}</p>`)}
     </ol>
     <h2 class="sec-h">${L("Sur le nouveau téléphone")}</h2>
     <ol class="card plain tr-steps" start="3">
@@ -1006,8 +1006,8 @@ function vTransfert() {
       ${NATIVE ? step(4, L("Retrouver Floussi Pro"), `<p class="hint">${PLATFORM === "android" ? L("Utilisez le même compte Google que sur l'ancien téléphone : Floussi Pro revient tout seul à l'ouverture. Sinon, touchez « Restaurer mes achats ».") : L("Utilisez le même identifiant Apple que sur l'ancien téléphone : Floussi Pro revient tout seul à l'ouverture. Sinon, touchez « Restaurer mes achats ».")}</p>
         ${isPro() ? `<p class="pro-on">✓ ${L("Floussi Pro est actif")}.</p>` : `<button type="button" class="btn ghost" data-act="pro-restore">${L("Restaurer mes achats")}</button>`}`) : ""}
     </ol>
-    ${NATIVE ? `<h2 class="sec-h">${L("Passer d'un iPhone à un Android, ou l'inverse")}</h2>
-    <div class="card"><p class="hint" style="margin:0">${L("Vos données passent sans problème avec le fichier de sauvegarde. L'abonnement ou l'achat à vie, lui, reste attaché au magasin où il a été payé (App Store ou Google Play) : ni Apple ni Google ne permettent de le transférer.")} ${L("Écrivez-nous à")} ${mail} ${L("en indiquant votre ancien et votre nouveau téléphone : nous vous offrirons la période qu'il vous restait.")}</p></div>` : ""}`;
+    ${NATIVE ? `<h2 class="sec-h">${L("Passer à un téléphone d'une autre marque")}</h2>
+    <div class="card"><p class="hint" style="margin:0">${L("Vos données passent sans problème avec le fichier de sauvegarde. L'abonnement ou l'achat à vie, lui, reste attaché au magasin d'applications où il a été payé : il ne peut pas être transféré vers un autre magasin.")} ${L("Écrivez-nous à")} ${mail} ${L("en indiquant votre ancien et votre nouveau téléphone : nous vous offrirons la période qu'il vous restait.")}</p></div>` : ""}`;
 }
 function vDonnees() {
   const where = demo ? L("Mode exemple : rien n'est enregistré.") : syncState === "cloud" ? L("Vos données sont enregistrées sur cet appareil et dans votre compte Claude, en privé ; elles vous suivent sur vos appareils.") : syncState === "error" ? L("La dernière sauvegarde en ligne a échoué. Vos données restent sur cet appareil ; elles seront renvoyées à la prochaine modification.") : syncState === "toolarge" ? L("Vos données sont trop volumineuses pour la sauvegarde en ligne, souvent à cause des images de catégories. Elles restent sur cet appareil.") : L("Vos données sont enregistrées sur cet appareil uniquement.");
@@ -1020,7 +1020,7 @@ function vDonnees() {
       <p class="hint">${IS_APPLE ? L("La première fois, choisissez « Enregistrer dans Fichiers », puis iCloud Drive, et créez un dossier Floussi. Les fois suivantes, l'iPhone repropose ce dossier.") : L("Choisissez l'application de stockage où garder le fichier.")}</p>` : ""}
       <button type="button" class="btn${canCloud() ? " ghost" : ""}" data-act="backup">${L("Enregistrer une sauvegarde sur l'appareil")}</button>
       <label class="check"><input type="checkbox" id="pdaily" ${P.daily ? "checked" : ""} aria-describedby="daily-hint"><span><b>${L("Rappel de sauvegarde quotidienne")}</b></span></label>
-      <small class="hint" id="daily-hint" style="margin-top:-4px">${L("Chaque jour où vous ouvrez Floussi, l'Accueil propose d'enregistrer la sauvegarde en un geste. Une appli web ne peut pas écrire seule dans iCloud : votre confirmation reste nécessaire.")}</small>
+      <small class="hint" id="daily-hint" style="margin-top:-4px">${L("Chaque jour où vous ouvrez Floussi, l'Accueil propose d'enregistrer la sauvegarde en un geste.") + (NATIVE ? "" : " " + L("Une appli web ne peut pas l'enregistrer toute seule : votre confirmation reste nécessaire."))}</small>
       <label class="filebtn"><input type="file" id="backup-file" accept=".json,application/json"><span class="btn ghost">${L("Restaurer une sauvegarde (fichier .json)…")}</span></label>
     </div>
     <h2 class="sec-h">${L("Sauvegardes automatiques")}</h2>

@@ -67,15 +67,44 @@ Android Studio s'ouvre sur le projet. La première fois, il télécharge des él
 
 ## 6. iPhone (sur un Mac)
 
+### Essayer sur votre iPhone (gratuit, sans attendre la validation du compte développeur)
+
+**Une seule fois**
+1. Installez **Xcode** (Mac App Store, gratuit, long à télécharger), ouvrez-le une fois et acceptez l'installation des composants iOS.
+2. Installez **Node.js** version 22 ou plus (https://nodejs.org, version « LTS »).
+3. Téléchargez le dossier du projet (sur GitHub : **Code › Download ZIP**) et dézippez-le.
+
+**Fabriquer l'appli** : ouvrez l'application **Terminal**, tapez `cd ` (avec l'espace), glissez le dossier `mobile` dans la fenêtre, appuyez sur Entrée, puis :
+
 ```
 npm install
 npm run preparer-ios
 npm run ouvrir-ios
 ```
 
-Dans Xcode : cliquez sur **App** › onglet **Signing & Capabilities** › choisissez votre équipe (compte Apple Developer, 99 USD/an). Branchez l'iPhone et cliquez ▶ pour l'essayer. Pour l'App Store : **Product › Archive**, puis **Distribute App**.
+Xcode s'ouvre avec le projet.
 
-Les réglages nécessaires (dossier visible dans Fichiers, autorisation de l'appareil photo pour les tickets) sont ajoutés automatiquement par `scripts/configurer-natif.mjs`.
+**Dans Xcode**
+1. À gauche, cliquez sur **App** (icône bleue) › cible **App** › onglet **Signing & Capabilities**.
+2. Cochez **Automatically manage signing**. Dans **Team**, choisissez votre identifiant Apple (« Add an Account… » la première fois). Un identifiant Apple gratuit suffit pour essayer.
+3. Branchez l'iPhone au Mac par câble, déverrouillez-le, touchez **Se fier** à cet ordinateur.
+4. Sur l'iPhone : Réglages › Confidentialité et sécurité › **Mode développeur** › activer (l'iPhone redémarre). Cette ligne n'apparaît qu'après avoir branché l'iPhone à Xcode.
+5. En haut de Xcode, choisissez votre iPhone dans la liste des appareils, puis cliquez **▶**.
+6. Au premier lancement avec un identifiant gratuit, l'iPhone refuse d'ouvrir l'appli : Réglages › Général › **VPN et gestion de l'appareil** › votre identifiant › **Faire confiance**. Relancez ▶.
+
+**À savoir**
+- Cette appli de test est **séparée** de la version web installée sur l'écran d'accueil : elle démarre vide (mode Exemple). Pour y retrouver vos vraies données : dans la version web, Réglages › Changer de téléphone › Préparer le transfert, puis restaurez le fichier dans l'appli de test. Vos données de la version web ne sont pas touchées.
+- Avec un identifiant Apple gratuit, l'appli de test cesse de s'ouvrir au bout de **7 jours** : relancez ▶ depuis Xcode pour la réinstaller (les données restent). Avec le compte développeur payant, elle dure un an.
+- **Les achats Floussi Pro ne peuvent pas être essayés avec un identifiant gratuit** : il faut le compte développeur validé, la capacité In-App Purchase et les produits créés (section 7). En attendant, l'écran Pro affiche « Prix affiché par App Store » sans prix : c'est normal.
+- Après une modification de l'appli : `npm run mettre-a-jour`, puis ▶ dans Xcode.
+
+**Quoi vérifier** : saisir une opération, fermer puis rouvrir l'appli (les données sont là) ; Réglages › Verrouillage › Face ID ; photo d'un ticket ; date avec heure ; Réglages › Sauvegarde (le dossier Floussi apparaît dans l'app Fichiers › Sur mon iPhone) ; passage en arabe ; mode sombre.
+
+### Envoyer à l'App Store
+
+Avec le compte Apple Developer (99 USD/an) validé : choisissez cette équipe dans **Signing & Capabilities**, puis **Product › Archive** et **Distribute App**. Lisez d'abord `PUBLICATION.md`.
+
+Les réglages nécessaires (dossier visible dans Fichiers, autorisations, iPhone seulement) sont ajoutés automatiquement par `scripts/configurer-natif.mjs`.
 
 ## 7. Floussi Pro (abonnement)
 
@@ -135,6 +164,10 @@ Demandez une capture du reçu (e-mail d'Apple ou de Google) puis offrez l'accès
 Avant de distribuer votre premier code, testez-en un vous-même (codes « sandbox » chez Apple, compte testeur chez Google) : Floussi Pro doit s'activer à la réouverture de l'appli. Sur Android, vérifiez aussi dans Play Console que l'achat apparaît comme « confirmé » (Google rembourse au bout de 3 jours un achat non confirmé).
 
 **Partage familial (iPhone, facultatif)** : App Store Connect › le produit › cochez « Partage familial ». La famille de l'acheteur profite alors de Pro sur ses propres appareils. Une fois activé, ce choix ne peut plus être retiré.
+
+## 9. Avant d'envoyer aux magasins
+
+Lisez `PUBLICATION.md` (même dossier) : liste de contrôle, réponses aux formulaires d'Apple et de Google, textes des fiches et notes pour les vérificateurs. Lancez aussi `node outils/verifier-stores.mjs` depuis le dossier principal.
 
 ## Contenu du dossier
 

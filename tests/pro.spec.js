@@ -241,8 +241,8 @@ test("changer de téléphone : lien depuis Floussi Pro, restaurer, cas iPhone ve
   await expect(page.locator("#wrap")).toBeHidden();
   await expect(page.locator("#view .tr-step")).toHaveCount(4);
   await expect(page.locator("#view .tr-step").nth(3)).toContainText("même identifiant Apple");
-  await expect(page.locator("#view")).toContainText("Passer d'un iPhone à un Android");
-  await expect(page.locator('#view a[href*="confidentialite"]')).toBeVisible();
+  await expect(page.locator("#view")).toContainText("Passer à un téléphone d'une autre marque");
+  await expect(page.locator('#view a[href^="mailto:simojelloun@gmail.com"]')).toBeVisible();
   // l'achat est retrouvé sur le nouveau téléphone
   await page.evaluate(() => { __achats = [{productIdentifier: "floussi_pro_annuel", isActive: true, expirationDate: new Date(Date.now() + 2e10).toISOString(), willCancel: false}]; });
   await page.click('#view [data-act="pro-restore"]');

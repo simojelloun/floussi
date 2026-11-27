@@ -8,13 +8,14 @@
      analyse détaillée, bilan PDF, import CSV) et personnalisation (style, couleurs, images de catégories).
      Les données déjà saisies restent toujours visibles et modifiables. */
 const PRO_IOS = "floussi_pro_annuel", PRO_AND = "floussi_pro", PRO_PLAN = "annuel", PRO_LIFE = "floussi_pro_a_vie";
-const PRO_TERMS = "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/", PRO_PRIVACY = "https://simojelloun.github.io/floussi/confidentialite.html";
+/* conditions d'utilisation : contrat standard d'Apple sur iPhone ; page de Floussi ailleurs (jamais de lien Apple dans l'appli Android) */
 const PLATFORM = NATIVE && typeof window.Capacitor.getPlatform === "function" ? window.Capacitor.getPlatform() : "web";
+const PRO_TERMS = PLATFORM === "android" ? "https://simojelloun.github.io/floussi/conditions.html" : "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/", PRO_PRIVACY = "https://simojelloun.github.io/floussi/confidentialite.html";
 const PRO_GRACE = 3 * 864e5;
 /* limites de la version gratuite (appli installée) */
 const FREE = {acc: 3, cur: 2, bud: 1};
-/* adresse affichée aux utilisateurs qui passent d'iPhone à Android (ou l'inverse) ; vide : renvoi vers la politique de confidentialité */
-const SUPPORT_MAIL = "";
+/* adresse affichée aux utilisateurs qui changent de marque de téléphone ; vide : renvoi vers la politique de confidentialité */
+const SUPPORT_MAIL = "simojelloun@gmail.com";
 const NPUR = () => NP("NativePurchases");
 let proProd = null, proLife = null, proBack = null, proBusy = false;
 
@@ -58,7 +59,7 @@ function proTrialDays() {
 }
 function proOffersHtml() {
   const tr = proTrialDays(), yr = proProd && proProd.priceString ? `${esc(proProd.priceString)} ${L("par an")}` : "", dis = proBusy ? "disabled" : "";
-  return `<button type="button" class="btn pro-offer" id="pro-buy" data-act="pro-buy" data-plan="an" ${dis}><b>${tr ? L("Essayer gratuitement pendant ") + plur(tr, L("jour"), L("jours")) : L("S'abonner à Floussi Pro")}</b><small>${yr ? (tr ? L("puis ") : "") + yr : L("Prix affiché par l'App Store ou Google Play.")}</small></button>
+  return `<button type="button" class="btn pro-offer" id="pro-buy" data-act="pro-buy" data-plan="an" ${dis}><b>${tr ? L("Essayer gratuitement pendant ") + plur(tr, L("jour"), L("jours")) : L("S'abonner à Floussi Pro")}</b><small>${yr ? (tr ? L("puis ") : "") + yr : L("Prix affiché par") + " " + (PLATFORM === "android" ? "Google Play" : "App Store") + "."}</small></button>
     ${proLife ? `<button type="button" class="btn ghost pro-offer" id="pro-buy-life" data-act="pro-buy" data-plan="vie" ${dis}><b>${L("Acheter à vie")}${proLife.priceString ? " · " + esc(proLife.priceString) : ""}</b><small>${L("Un seul paiement, sans abonnement.")}</small></button>` : ""}`;
 }
 /* bouton « Pro » à la place d'une fonction réservée ; realHtml = ce qui s'affiche une fois Pro activé */

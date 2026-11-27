@@ -7,7 +7,7 @@ test("page « Changer de téléphone » : étapes, préparer le transfert, resta
   await page.evaluate(() => { location.hash = "reglages"; });
   await page.click('#view a[href="#transfert"]');
   await expect(page.locator("#view .tr-step")).toHaveCount(3); // sur le web : pas d'étape Floussi Pro
-  await expect(page.locator("#view")).not.toContainText("Passer d'un iPhone");
+  await expect(page.locator("#view")).not.toContainText("autre marque");
   await expect(page.locator("#view .tr-warn")).toContainText("remplace tout");
   await expect(page.locator("#view #backup-file")).toHaveCount(1);
   // « Préparer le transfert » produit le fichier de sauvegarde
