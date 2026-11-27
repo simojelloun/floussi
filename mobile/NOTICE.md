@@ -112,6 +112,30 @@ Prix conseillés : **4,99 € par an**, et **14,99 € à vie** ; Apple et Googl
 
 Points vérifiés par Apple à la relecture, déjà présents dans l'écran Pro : bouton **Restaurer mes achats**, prix et durée affichés, renouvellement automatique expliqué, liens vers les **Conditions d'utilisation** (contrat standard d'Apple) et la **politique de confidentialité**.
 
+## 8. Quand un utilisateur change de téléphone
+
+**Ce que l'utilisateur fait (expliqué dans l'appli : Réglages › Changer de téléphone, en 4 langues)**
+1. Ancien téléphone : bouton « Préparer le transfert » → un fichier de sauvegarde à envoyer (e-mail, WhatsApp, AirDrop, Drive).
+2. Nouveau téléphone : même page → « Restaurer une sauvegarde ». ⚠️ Cela remplace tout ce qui est déjà dans Floussi sur ce téléphone : à faire avant de saisir de nouvelles opérations (l'appli le rappelle).
+3. Floussi Pro : avec le même compte Apple ou Google, il revient tout seul à l'ouverture ; sinon bouton « Restaurer mes achats » (aussi dans la fiche Floussi Pro, avec le lien « Vous changez de téléphone ? »).
+
+**iPhone → Android (ou l'inverse) : l'achat ne suit pas.** Apple et Google ne partagent rien. L'appli invite la personne à vous écrire. Mettez votre adresse dans `js/pro.js` :
+```js
+const SUPPORT_MAIL = "votre.adresse@exemple.com";
+```
+(tant qu'elle est vide, l'appli renvoie vers l'adresse de la politique de confidentialité : pensez à remplir `[ADRESSE E-MAIL DE CONTACT]` dans `confidentialite.html`).
+
+Demandez une capture du reçu (e-mail d'Apple ou de Google) puis offrez l'accès avec un code :
+
+| Nouveau téléphone | Où | Quoi offrir | Limites |
+|---|---|---|---|
+| iPhone | App Store Connect › votre app › Achats intégrés (ou Abonnements) › le produit › **Codes d'offre** › Créer | Abonnement annuel gratuit pour la durée restante, ou l'achat à vie gratuit | codes à usage unique ; un code expire au plus tard après 6 mois ; la personne le saisit dans l'App Store (photo de profil › Utiliser une carte cadeau ou un code) |
+| Android | Play Console › Monétiser › **Promotions** › Créer | Pour un abonnement, Google n'offre qu'un **essai gratuit de 3 à 90 jours** : si la personne avait plus de 3 mois devant elle, offrez plutôt **l'achat à vie** (`floussi_pro_a_vie`) | 500 codes par trimestre pour les achats uniques ; la personne le saisit dans Play Store › Profil › Paiements et abonnements › Utiliser un code |
+
+Avant de distribuer votre premier code, testez-en un vous-même (codes « sandbox » chez Apple, compte testeur chez Google) : Floussi Pro doit s'activer à la réouverture de l'appli. Sur Android, vérifiez aussi dans Play Console que l'achat apparaît comme « confirmé » (Google rembourse au bout de 3 jours un achat non confirmé).
+
+**Partage familial (iPhone, facultatif)** : App Store Connect › le produit › cochez « Partage familial ». La famille de l'acheteur profite alors de Pro sur ses propres appareils. Une fois activé, ce choix ne peut plus être retiré.
+
 ## Contenu du dossier
 
 - `www/` : copie de l'application web, créée par `npm run copier-web` (ne pas modifier à la main).

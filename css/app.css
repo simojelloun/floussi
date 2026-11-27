@@ -818,3 +818,13 @@ svg.ce .ce-hi{font-weight:800;fill:var(--text)}
 .ana-top button.link{background:none;border:0;font-size:14px;cursor:pointer;color:var(--accent)}
 .ana-body .sec-h{margin-top:22px}.ana-body > .sec-h:first-child{margin-top:10px}
 .ana-nav .btn{display:inline-flex;align-items:center;gap:6px}
+.cal-t{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:8px 2px 4px;padding-top:10px;border-top:1px solid var(--line)}
+.cal-t .check{margin:0}
+.cal-t input[type=time]{min-height:40px;padding:6px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);font:inherit;font-weight:600;font-size:16px;font-variant-numeric:tabular-nums}
+.cal-t input[type=time]:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+/* changer de téléphone */
+.tr-steps{display:flex;flex-direction:column;gap:14px;margin:0}
+.tr-step{display:grid;grid-template-columns:30px 1fr;gap:12px;align-items:start}
+.tr-step > div{display:flex;flex-direction:column;gap:8px;min-width:0}.tr-step p{margin:0}
+.tr-n{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:14px;background:color-mix(in srgb,var(--accent) 15%,transparent);color:var(--accent)}
+.tr-warn{margin:0;padding:8px 10px;border-radius:10px;font-size:13px;background:color-mix(in srgb,#eda100 16%,transparent);color:var(--ink)}

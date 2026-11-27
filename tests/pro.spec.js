@@ -232,3 +232,22 @@ test("achat à vie : un seul paiement, Pro sans date de fin ni abonnement à gé
   await expect(page.locator('[data-act="pro-manage"]')).toHaveCount(0);
   sansErreur(page);
 });
+
+test("changer de téléphone : lien depuis Floussi Pro, restaurer, cas iPhone vers Android", async ({ page }) => {
+  await natif(page);
+  await page.evaluate(() => { location.hash = "reglages"; });
+  await page.click('[data-act="pro"][data-why="menu"]');
+  await page.click('#sheet [data-act="go-transfer"]');
+  await expect(page.locator("#wrap")).toBeHidden();
+  await expect(page.locator("#view .tr-step")).toHaveCount(4);
+  await expect(page.locator("#view .tr-step").nth(3)).toContainText("même identifiant Apple");
+  await expect(page.locator("#view")).toContainText("Passer d'un iPhone à un Android");
+  await expect(page.locator('#view a[href*="confidentialite"]')).toBeVisible();
+  // l'achat est retrouvé sur le nouveau téléphone
+  await page.evaluate(() => { __achats = [{productIdentifier: "floussi_pro_annuel", isActive: true, expirationDate: new Date(Date.now() + 2e10).toISOString(), willCancel: false}]; });
+  await page.click('#view [data-act="pro-restore"]');
+  await expect.poll(() => page.evaluate(() => isPro())).toBe(true);
+  await expect(page.locator("#view .pro-on")).toBeVisible();
+  expect(await page.evaluate(() => __appels.some(a => a[0] === "restaurer"))).toBe(true);
+  expect(page.erreurs).toEqual([]);
+});

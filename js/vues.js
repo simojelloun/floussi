@@ -67,7 +67,7 @@ function saveTemplate() {
 function noteSugs(q, kind) {
   q = norm(q); if (q.length < 2) return [];
   const seen = new Map();
-  for (const t of allTx().sort((a, b) => b.date.localeCompare(a.date))) {
+  for (const t of allTx().sort(txCmp)) {
     if (!t.note || t.t !== kind) continue; const n = norm(t.note);
     if (!n.includes(q) || seen.has(n)) continue; seen.set(n, t); if (seen.size >= 4) break;
   }
@@ -328,9 +328,9 @@ function vModeles() {
 let opTag = "", searchAll = true;
 let tab = "accueil", month = today().slice(0, 7), cur = "MAD", filter = "all", query = "", loanFilter = "open", catKind = "dep";
 const TITLES = {daret: L("Daret"), zakat: L("Zakat"), accueil: "Floussi", operations: L("Opérations"), recurrentes: L("Opérations récurrentes"), prets: L("Prêts et emprunts"), budgets: L("Budgets"),
-  stats: L("Statistiques"), verrouillage: L("Verrouillage"), comptes: L("Comptes"), reglages: L("Réglages"), devises: L("Devises et cours"), categories: L("Catégories"), apparence: L("Apparence"), donnees: L("Sauvegarde et import"), bilan: L("Bilan imprimable"), modeles: L("Modèles d'opérations")};
+  transfert: L("Changer de téléphone"), stats: L("Statistiques"), verrouillage: L("Verrouillage"), comptes: L("Comptes"), reglages: L("Réglages"), devises: L("Devises et cours"), categories: L("Catégories"), apparence: L("Apparence"), donnees: L("Sauvegarde et import"), bilan: L("Bilan imprimable"), modeles: L("Modèles d'opérations")};
 const PARENT = {recurrentes: "operations", bilan: "stats", daret: "prets"};
-const IN_SETTINGS = ["reglages", "devises", "categories", "apparence", "donnees", "verrouillage", "modeles", "zakat"];
+const IN_SETTINGS = ["reglages", "devises", "categories", "apparence", "donnees", "transfert", "verrouillage", "modeles", "zakat"];
 const backLink = to => `<a class="back" href="#${to}"><span aria-hidden="true">‹</span> ${esc(TITLES[to])}</a>`;
 
 function txInfo(t) {
@@ -359,6 +359,7 @@ function txInfo(t) {
 function txRow(t, withDate, inGrp) {
   const i = txInfo(t);
   if (inGrp) { i.title = t.pn || catLabel(t.cat); i.sub = (t.pn ? catLabel(t.cat) + " · " : "") + (acc(t.acc) ? acc(t.acc).name : ""); }
+  if (t.time && !inGrp) { i.sub = t.time + (i.sub ? " · " + i.sub : ""); i.sr += L(", à ") + t.time; }
   const tg = tagsOf(t); if (tg.length && !inGrp) { i.sub += " · " + tg.map(x => "#" + x).join(" "); i.sr += L(", étiquettes ") + tg.join(", "); }
   if (t.ph && !inGrp) i.sr += L(", avec photo du ticket");
   const swp = t.t !== "pret";
@@ -372,7 +373,7 @@ function txByDay(list) {
     const g = arr.filter(x => x.grp === t.grp); if (g.length < 2) return txRow(t);
     const net = {}; g.forEach(x => { const a = acc(x.acc), c = a ? a.cur : base(); net[c] = (net[c] || 0) + (x.t === "rev" ? x.amt : -x.amt); });
     const ns = Object.entries(net).map(([c, v]) => (v < 0 ? "−" : "+") + fmt(Math.abs(v), c)).join(" · "), ttl = t.note || L("Opération répartie"), pos = Object.values(net).every(v => v >= 0);
-    return `<li class="grp"><button type="button" class="row" data-act="edit-tx" data-id="${esc(t.id)}" aria-label="${esc(L("Opération répartie") + ", " + ttl + ", " + g.length + " " + L("lignes") + ", " + L("Total net :") + " " + ns.replace(/−/g, L("moins") + " ") + L(". Modifier"))}"><span class="chip" aria-hidden="true">⑂</span><span class="t"><b>${esc(ttl)}${t.ph ? `<span class="rec-mark" aria-hidden="true">📎</span>` : ""}</b><small>${L("Opération répartie")} · ${g.length} ${L("lignes")}${tagsOf(t).length ? " · " + esc(tagsOf(t).map(x => "#" + x).join(" ")) : ""}</small></span><span class="amt ${pos ? "rev" : "dep"}">${esc(ns)}</span></button><ul class="rows gsub">${g.map(x => txRow(x, false, true)).join("")}</ul></li>`;
+    return `<li class="grp"><button type="button" class="row" data-act="edit-tx" data-id="${esc(t.id)}" aria-label="${esc(L("Opération répartie") + ", " + ttl + ", " + g.length + " " + L("lignes") + ", " + L("Total net :") + " " + ns.replace(/−/g, L("moins") + " ") + L(". Modifier"))}"><span class="chip" aria-hidden="true">⑂</span><span class="t"><b>${esc(ttl)}${t.ph ? `<span class="rec-mark" aria-hidden="true">📎</span>` : ""}</b><small>${t.time ? t.time + " · " : ""}${L("Opération répartie")} · ${g.length} ${L("lignes")}${tagsOf(t).length ? " · " + esc(tagsOf(t).map(x => "#" + x).join(" ")) : ""}</small></span><span class="amt ${pos ? "rev" : "dep"}">${esc(ns)}</span></button><ul class="rows gsub">${g.map(x => txRow(x, false, true)).join("")}</ul></li>`;
   }).join(""); };
   return Object.keys(days).sort().reverse().map(d => `<h3 class="day"><span>${dayName(d)}</span></h3><ul class="rows">${block(days[d])}</ul>`).join("");
 }
@@ -411,7 +412,7 @@ function vAccueil() {
       <div class="strong"><dt>${L("Patrimoine net")}${hasLoans ? L(", prêts compris") : ""}</dt><dd>${fmt(net, oc)}</dd></div></dl>
       ${list.some(c => c !== oc) ? `<small class="hint">${L("Conversion au cours saisi le ")}${dm(S.meta.ratesDate)}. <a class="link" href="#devises">${L("Modifier les cours")}</a></small>` : ""}</div>` : "";
   const al = S.meta.budgets.map(b => ({b, s: budgetState(b, nowYm)})).filter(x => x.s.r >= .8);
-  const recent = allTx().sort((a, b) => b.date.localeCompare(a.date)).slice(0, 6);
+  const recent = allTx().sort(txCmp).slice(0, 6);
   const fold = (key, title, extra, body, defOpen) => { const o = P.fold && key in P.fold ? P.fold[key] : defOpen; return `<details class="fold" data-fold="${key}" ${o ? "open" : ""}><summary><span class="ft">${title}</span>${extra ? `<span class="fx">${extra}</span>` : ""}<span class="chev" aria-hidden="true">›</span></summary><div class="fold-b">${body}</div></details>`; };
   const overviewBody = overview ? overview.slice(overview.indexOf('<div class="card">')) : "";
   return `<section class="ledger ${list.length === 1 ? "one" : ""}" aria-label="${L("Soldes par devise")}">${list.map(colH).join("")}</section>` + overdueBlock() + accCards() + quickBlock() + banner() + dailyBlock() + (overviewBody ? fold("overview", L("Vue d'ensemble en ") + esc(plural(oc)), `<span class="num">${fmt(net, oc)}</span>`, overviewBody, false) : "") + pendingBlock(3, true) + upcomingBlock() +
@@ -510,7 +511,7 @@ function vOperations() {
     ${tagsAll.length ? `<div class="filters scroll" role="group" aria-label="${esc(L("Étiquettes"))}">${tagsAll.slice(0, 15).map(g => `<button type="button" class="pill-btn" data-act="op-tag" data-v="${esc(g)}" aria-pressed="${opTag === g}">#${esc(g)}</button>`).join("")}</div>` : ""}
     ${q || opTag ? `<div class="srch-info"><label class="check"><input type="checkbox" id="q-all" ${searchAll ? "checked" : ""}><span>${L("Chercher sur toutes les dates")}</span></label><b role="status">${plur(list.length, L("résultat"), L("résultats"))}</b></div>${tagSum}` : ""}
     <h2 class="sr">${plur(list.length, L("opération"), L("opérations"))}</h2>
-    <div class="card" id="tx-list">${list.length ? txByDay(list.sort((x, y) => y.date.localeCompare(x.date)).slice(0, 300)) : `<p class="empty">${L("Aucune opération sur cette période")}${q || filter !== "all" || opAcc ? L(" avec ces filtres") : ""}.</p>`}</div>
+    <div class="card" id="tx-list">${list.length ? txByDay(list.sort(txCmp).slice(0, 300)) : `<p class="empty">${L("Aucune opération sur cette période")}${q || filter !== "all" || opAcc ? L(" avec ces filtres") : ""}.</p>`}</div>
     ${list.length > 300 ? `<p class="hint" style="text-align:center">${L("Seules les 300 premières opérations sont affichées. Réduisez la période pour voir le reste.")}</p>` : list.length ? `<p class="hint" style="text-align:center">${L("Astuce : balayez une opération vers la gauche pour la supprimer (touche Suppr au clavier).")}</p>` : ""}`;
 }
 
@@ -569,7 +570,7 @@ function saveSplit(d) {
   (d.grp ? allTx().filter(t => t.grp === d.grp).map(t => t.id) : d.id ? [d.id] : []).forEach(id => { const m = removeTx(id); if (m) ch.add("tx-" + m); });
   /* une échéance récurrente payée que l'on répartit reste « payée » : la 1re ligne garde son identifiant */
   const keep = !d.grp && d.id && d.rec ? {id: d.id, rec: d.rec} : null;
-  parts.forEach((pt, i) => { const x = {id: i === 0 && keep ? keep.id : uid() + i, t: d.t, amt: pt.amt, acc: pt.acc, cat: pt.cat, date: d.date, note: d.note.trim()}; if (i === 0 && keep) x.rec = keep.rec; if (grp) x.grp = grp; if (pt.pn) x.pn = pt.pn; if (tg.length) x.tags = tg; if (d.photo) x.ph = 1; if (!key) key = grp || x.id; putTx(x).forEach(k => ch.add(k)); });
+  parts.forEach((pt, i) => { const x = {id: i === 0 && keep ? keep.id : uid() + i, t: d.t, amt: pt.amt, acc: pt.acc, cat: pt.cat, date: d.date, note: d.note.trim()}; if (okHM(d.time)) x.time = d.time; if (i === 0 && keep) x.rec = keep.rec; if (grp) x.grp = grp; if (pt.pn) x.pn = pt.pn; if (tg.length) x.tags = tg; if (d.photo) x.ph = 1; if (!key) key = grp || x.id; putTx(x).forEach(k => ch.add(k)); });
   phSave(d, key);
   touch(...ch); genie(closeSheet); month = d.date.slice(0, 7); showInOps(d.date); render();
   toast((parts.length > 1 ? L("Opération répartie en") + " " + parts.length + " " + L("lignes") : L("Opération ajoutée")) + budAlert(bud0, d.date.slice(0, 7)));
@@ -945,6 +946,7 @@ function vReglages() {
     ${item("apparence", "🎨", L("Apparence"), `${L("Thème ")}${P.mode === "auto" ? L("automatique") : P.mode === "dark" ? L("sombre") : L("clair")}${L(", couleurs ")}${esc((THEMES[P.accent] || THEMES.sapin).name)}`)}
     ${item("verrouillage", "🔒", L("Verrouillage"), LOCK() ? L("Code activé") + (P.lock.bio ? " · Face ID" : "") : L("Désactivé"))}
     ${item("donnees", "💾", L("Sauvegarde et import"), L("Fichier de sauvegarde, import et export CSV"))}
+    ${item("transfert", "📲", L("Changer de téléphone"), NATIVE ? L("Transférer vos données et retrouver Floussi Pro") : L("Transférer vos données sur un autre appareil"))}
   </ul>`;
 }
 function setBase(code) {
@@ -986,12 +988,33 @@ function vApparence() {
       <small class="hint" id="zoom-hint" style="margin-top:0">${L("Désactivé, seuls les graphiques s'agrandissent (pincer, ou boutons + et −). Activez-le si vous avez besoin d'agrandir le texte. Dans l'application Claude, c'est elle qui décide du zoom de la page.")}</small></fieldset>
   </form>`;
 }
+/* changer de téléphone : les données passent par un fichier de sauvegarde, Floussi Pro par le compte Apple ou Google */
+function vTransfert() {
+  const step = (n, t, body) => `<li class="tr-step"><span class="tr-n" aria-hidden="true">${n}</span><div><b>${t}</b>${body}</div></li>`;
+  const mail = typeof SUPPORT_MAIL === "string" && SUPPORT_MAIL ? `<a class="link" href="mailto:${esc(SUPPORT_MAIL)}?subject=${encodeURIComponent("Floussi Pro")}">${esc(SUPPORT_MAIL)}</a>` : `<a class="link" href="${PRO_PRIVACY}" target="_blank" rel="noopener">${L("l'adresse indiquée dans la politique de confidentialité")}</a>`;
+  return backLink("reglages") + `<p class="hint" style="margin:2px 2px 10px">${L("Vos données sont enregistrées sur ce téléphone, pas sur un serveur : pour les retrouver sur un nouveau téléphone, on les emporte dans un fichier de sauvegarde.")}</p>
+    <h2 class="sec-h">${L("Sur l'ancien téléphone")}</h2>
+    <ol class="card plain tr-steps">
+      ${step(1, L("Préparer le transfert"), `<p class="hint">${L("Floussi crée un fichier qui contient tout : comptes, opérations, catégories, budgets, prêts, daret, récurrences et photos des tickets.")}</p><button type="button" class="btn" data-act="transfer-prep">📤 ${L("Préparer le transfert")}</button>`)}
+      ${step(2, L("Envoyer le fichier vers le nouveau téléphone"), `<p class="hint">${L("Par e-mail, WhatsApp, AirDrop, ou en l'enregistrant dans iCloud Drive ou Google Drive.")}${P.lastBackup ? " " + L("Dernière sauvegarde : ") + longDate(P.lastBackup) + "." : ""}</p>`)}
+    </ol>
+    <h2 class="sec-h">${L("Sur le nouveau téléphone")}</h2>
+    <ol class="card plain tr-steps" start="3">
+      ${step(3, L("Installer Floussi et restaurer le fichier"), `<p class="hint">${L("Ouvrez cette page sur le nouveau téléphone (Réglages › Changer de téléphone), puis choisissez le fichier reçu.")}</p>
+        <p class="tr-warn" role="note">⚠️ ${L("La restauration remplace tout ce qui se trouve déjà dans Floussi sur ce téléphone. Faites-la avant de saisir de nouvelles opérations.")}</p>
+        <label class="filebtn"><input type="file" id="backup-file" accept=".json,application/json"><span class="btn ghost">${L("Restaurer une sauvegarde (fichier .json)…")}</span></label>`)}
+      ${NATIVE ? step(4, L("Retrouver Floussi Pro"), `<p class="hint">${PLATFORM === "android" ? L("Utilisez le même compte Google que sur l'ancien téléphone : Floussi Pro revient tout seul à l'ouverture. Sinon, touchez « Restaurer mes achats ».") : L("Utilisez le même identifiant Apple que sur l'ancien téléphone : Floussi Pro revient tout seul à l'ouverture. Sinon, touchez « Restaurer mes achats ».")}</p>
+        ${isPro() ? `<p class="pro-on">✓ ${L("Floussi Pro est actif")}.</p>` : `<button type="button" class="btn ghost" data-act="pro-restore">${L("Restaurer mes achats")}</button>`}`) : ""}
+    </ol>
+    ${NATIVE ? `<h2 class="sec-h">${L("Passer d'un iPhone à un Android, ou l'inverse")}</h2>
+    <div class="card"><p class="hint" style="margin:0">${L("Vos données passent sans problème avec le fichier de sauvegarde. L'abonnement ou l'achat à vie, lui, reste attaché au magasin où il a été payé (App Store ou Google Play) : ni Apple ni Google ne permettent de le transférer.")} ${L("Écrivez-nous à")} ${mail} ${L("en indiquant votre ancien et votre nouveau téléphone : nous vous offrirons la période qu'il vous restait.")}</p></div>` : ""}`;
+}
 function vDonnees() {
   const where = demo ? L("Mode exemple : rien n'est enregistré.") : syncState === "cloud" ? L("Vos données sont enregistrées sur cet appareil et dans votre compte Claude, en privé ; elles vous suivent sur vos appareils.") : syncState === "error" ? L("La dernière sauvegarde en ligne a échoué. Vos données restent sur cet appareil ; elles seront renvoyées à la prochaine modification.") : syncState === "toolarge" ? L("Vos données sont trop volumineuses pour la sauvegarde en ligne, souvent à cause des images de catégories. Elles restent sur cet appareil.") : L("Vos données sont enregistrées sur cet appareil uniquement.");
   return backLink("reglages") + `<div class="card"><p style="margin:0;font-size:14px;color:var(--ink-2)">${where}</p></div>
     <h2 class="sec-h">${L("Sauvegarde sur l'appareil")}</h2>
     <div class="card" style="display:flex;flex-direction:column;gap:10px">
-      <p class="hint">${L("Un fichier de sauvegarde contient tout : comptes, opérations, catégories, budgets, prêts et récurrences. Gardez-le en lieu sûr pour restaurer vos données sur un autre appareil ou après une erreur.")}</p>
+      <p class="hint">${L("Un fichier de sauvegarde contient tout : comptes, opérations, catégories, budgets, prêts et récurrences. Gardez-le en lieu sûr pour restaurer vos données sur un autre appareil ou après une erreur.")} <a class="link" href="#transfert">${L("Vous changez de téléphone ?")}</a></p>
       <p style="margin:0;font-size:13px">${L("Dernière sauvegarde : ")}<b>${P.lastBackup ? longDate(P.lastBackup) : L("jamais")}</b></p>
       ${canCloud() ? `<button type="button" class="btn" data-act="cloud-backup">${L("Enregistrer dans")} ${cloudName()}…</button>
       <p class="hint">${IS_APPLE ? L("La première fois, choisissez « Enregistrer dans Fichiers », puis iCloud Drive, et créez un dossier Floussi. Les fois suivantes, l'iPhone repropose ce dossier.") : L("Choisissez l'application de stockage où garder le fichier.")}</p>` : ""}

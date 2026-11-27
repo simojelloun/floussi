@@ -53,7 +53,7 @@ function dateQuick(d) {
 }
 function setDateField(id, v) {
   const inp = document.getElementById(id); if (!inp) return; inp.value = v;
-  const sp = document.getElementById(id + "-val"); if (sp) sp.textContent = shortDate(v);
+  const sp = document.getElementById(id + "-val"); if (sp) sp.textContent = dateLbl(id, v);
   document.querySelectorAll(`[data-act="date-q"]`).forEach(b => b.setAttribute("aria-pressed", b.dataset.d === v));
 }
 /* ---------- opérations (et modèles de récurrence) ---------- */
@@ -89,7 +89,7 @@ function renderTx(focusId) {
       <label class="frow"><span class="fl">${L("Compte")}</span><select id="f-acc">${accOpts(d.acc)}</select></label>`
       : `<label class="frow"><span class="fl">${L("Depuis")}</span><select id="f-acc" aria-label="${esc(L("Depuis le compte"))}">${accOpts(d.acc)}</select></label><label class="frow"><span class="fl">${L("Vers")}</span><select id="f-to" aria-label="${esc(L("Vers le compte"))}">${accOpts(d.to)}</select></label>
       ${cross ? `<label class="frow"><span class="fl">${L("Reçu")} (${esc(sym(b.cur))})</span><input class="fin" type="text" inputmode="decimal" id="f-amt-to" placeholder="0,00" value="${esc(d.amtToS)}" autocomplete="off" aria-describedby="rate-hint"></label>` : ""}`}
-      <div class="frow"><span class="fl" id="f-date-lab">${isRec ? (d.id ? L("Prochaine échéance") : L("Première échéance")) : L("Date")}</span>${dateInput("f-date", esc(d.date), {})}</div>
+      <div class="frow"><span class="fl" id="f-date-lab">${isRec ? (d.id ? L("Prochaine échéance") : L("Première échéance")) : L("Date")}</span>${dateInput("f-date", esc(d.date), isRec ? {} : {time: d.time || ""})}</div>
       <label class="frow"><span class="fl">${L("Note")}</span><input class="fin" type="text" id="f-note" maxlength="80" placeholder="${esc(L("Ajouter une note"))}" value="${esc(d.note)}" autocomplete="off" enterkeyhint="done" aria-describedby="${isRec ? "" : "f-sug"}"></label>
       ${showRep ? `<label class="frow"><span class="fl"><span class="ricon" aria-hidden="true">↻</span>${isRec ? L("Fréquence") : L("Répéter")}</span>${freqSelect(d.rep, !isRec)}</label>` : rr || (d.rec && recOf(d.rec)) ? `<div class="frow"><span class="fl"><span class="ricon" aria-hidden="true">↻</span>${L("Répéter")}</span><button type="button" class="fv" data-act="edit-rec" data-id="${esc(d.rec)}"><span class="fvt">${esc(freqLabel(recOf(d.rec)))}</span><span class="chev" aria-hidden="true">›</span></button></div>` : ""}
     </div>
@@ -114,7 +114,7 @@ function readTx() {
   const t = document.querySelector('input[name="t"]:checked'); if (t) d.t = t.value;
   const md = document.querySelector('input[name="mode"]:checked'); if (md) d.mode = md.value;
   d.amtS = g("f-amt") ?? d.amtS; d.acc = g("f-acc") ?? d.acc; d.to = g("f-to") ?? d.to; d.amtToS = g("f-amt-to") ?? d.amtToS;
-  d.cat = g("f-cat") ?? d.cat; d.date = g("f-date") ?? d.date; d.note = g("f-note") ?? d.note; d.tagsS = g("f-tags") ?? d.tagsS; d.rep = g("f-rep") ?? d.rep; d.end = g("f-end") ?? d.end;
+  d.cat = g("f-cat") ?? d.cat; d.date = g("f-date") ?? d.date; d.time = g("f-date-tm") ?? d.time; d.note = g("f-note") ?? d.note; d.tagsS = g("f-tags") ?? d.tagsS; d.rep = g("f-rep") ?? d.rep; d.end = g("f-end") ?? d.end;
   const rp = document.getElementById("f-repeat"); if (rp) { if (!rp.checked) { if (d.rep !== "none") d.lastRep = d.rep; d.rep = "none"; } else if (d.rep === "none") d.rep = d.lastRep || "m1"; }
   const p = document.getElementById("f-pause"); if (p) d.paused = p.checked;
   const pd = document.getElementById("f-paid"); if (pd) d.paidNow = pd.checked;
@@ -132,7 +132,7 @@ function openTx(t, kind) {
   if (t && t.t === "pret") { const l = loan(t.loan); if (l) return openMove(l, t.mv, t); }
   if (!S.meta.accounts.length) { toast(L("Créez d'abord un compte dans l'onglet Comptes.")); return; }
   draft = t ? {...t, kind: "tx", amtS: plain(t.amt), amtToS: t.amtTo != null ? plain(t.amtTo) : "", autoTo: t.amtTo != null ? false : undefined, rep: "none", mode: "manual", end: "", tagsS: tagsOf(t).join(", "), catTouched: true}
-    : {kind: "tx", t: kind || "dep", amtS: "", acc: accSorted()[0].id, to: "", cat: (cats(kind || "dep")[0] || {}).id || "", date: today(), note: "", amtToS: "", rep: "none", mode: "manual", end: "", tagsS: ""};
+    : {kind: "tx", t: kind || "dep", amtS: "", acc: accSorted()[0].id, to: "", cat: (cats(kind || "dep")[0] || {}).id || "", date: today(), time: "", note: "", amtToS: "", rep: "none", mode: "manual", end: "", tagsS: ""};
   draft.photo = null; draft.photoOld = null; draft.phKey = "";
   if (t && t.ph) { const k = phKeyOf(t); draft.phKey = k; if (PHOTOS[k]) draft.photo = draft.photoOld = PHOTOS[k];
     else IDB.get("ph-" + k).then(v => { if (v && draft && draft.phKey === k && !draft.photo) { PHOTOS[k] = v; draft.photo = draft.photoOld = v; const b = $("#ph-box"); if (b) b.innerHTML = phBox(draft); } }); }
@@ -158,6 +158,7 @@ function saveTx() {
   if (!a) return err(L("Choisissez un compte."), "f-acc");
   if (!/^\d{4}-\d{2}-\d{2}$/.test(d.date)) return err(L("Choisissez une date."), "f-date");
   const base0 = {t: d.t, amt, acc: d.acc, cat: "", note: d.note.trim()}, tg = parseTags(d.tagsS); if (tg.length) base0.tags = tg;
+  const hm = !isRec && okHM(d.time) ? {time: d.time} : {};
   const bud0 = budSnap(d.date.slice(0, 7));
   if (d.t === "vir") {
     if (!b || b.id === a.id) return err(L("Choisissez deux comptes différents pour le virement."), "f-to");
@@ -180,13 +181,13 @@ function saveTx() {
   if (d.id && d.grp) allTx().filter(t => t.grp === d.grp && t.id !== d.id).map(t => t.id).forEach(id => { const m = removeTx(id); if (m) ids.push("tx-" + m); });
   if (d.id && repOn && !d.rec) {
     const r = mkRec("rc-" + uid(), d.date, 1); S.meta.recurring.push(r);
-    sid = d.id; ids.push("meta", ...putTx({...base0, ...ph, id: d.id, date: d.date, rec: r.id}, d.id));
+    sid = d.id; ids.push("meta", ...putTx({...base0, ...ph, ...hm, id: d.id, date: d.date, rec: r.id}, d.id));
   }
-  else if (d.id) { const t = {...base0, ...ph, id: d.id, date: d.date}; if (d.rec) t.rec = d.rec; sid = d.id; ids.push(...putTx(t, d.id)); }
+  else if (d.id) { const t = {...base0, ...ph, ...hm, id: d.id, date: d.date}; if (d.rec) t.rec = d.rec; sid = d.id; ids.push(...putTx(t, d.id)); }
   else if (repOn) {
     const paid = d.paidNow ?? (d.date <= today()), r = mkRec("rc-" + uid(), d.date, paid ? 1 : 0); S.meta.recurring.push(r);
-    if (paid) { const t = {...recTx(r, d.date), ...ph}; sid = t.id; ids.push("meta", ...putTx(t)); } else ids.push("meta");
-  } else { sid = uid(); ids.push(...putTx({...base0, ...ph, id: sid, date: d.date})); }
+    if (paid) { const t = {...recTx(r, d.date), ...ph, ...hm}; sid = t.id; ids.push("meta", ...putTx(t)); } else ids.push("meta");
+  } else { sid = uid(); ids.push(...putTx({...base0, ...ph, ...hm, id: sid, date: d.date})); }
   if (sid) phSave(d, sid);
   touch(...ids); genie(closeSheet); month = d.date.slice(0, 7); showInOps(d.date); const n = repOn ? runAuto(true) : 0; render();
   const ba = budAlert(bud0, d.date.slice(0, 7));

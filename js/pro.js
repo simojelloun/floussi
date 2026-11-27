@@ -13,6 +13,8 @@ const PLATFORM = NATIVE && typeof window.Capacitor.getPlatform === "function" ? 
 const PRO_GRACE = 3 * 864e5;
 /* limites de la version gratuite (appli installée) */
 const FREE = {acc: 3, cur: 2, bud: 1};
+/* adresse affichée aux utilisateurs qui passent d'iPhone à Android (ou l'inverse) ; vide : renvoi vers la politique de confidentialité */
+const SUPPORT_MAIL = "";
 const NPUR = () => NP("NativePurchases");
 let proProd = null, proLife = null, proBack = null, proBusy = false;
 
@@ -106,6 +108,7 @@ function proHtml(why) {
     ${on ? (p && p.life ? "" : `<button type="button" class="btn ghost" data-act="pro-manage">${L("Gérer mon abonnement")}</button>`)
       : `<div class="pro-offers" id="pro-price" aria-live="polite">${proOffersHtml()}</div>
     <button type="button" class="link pro-rest" data-act="pro-restore">${L("Restaurer mes achats")}</button>`}
+    <button type="button" class="link pro-rest" data-act="go-transfer">📲 ${L("Vous changez de téléphone ?")}</button>
     <p class="pro-legal">${L("Abonnement annuel renouvelé automatiquement, payé avec votre compte")} ${store}. ${L("Résiliable à tout moment dans les réglages de votre compte, au plus tard 24 heures avant la date de renouvellement.")} ${L("S'il y a un essai gratuit, il devient un abonnement payant à la fin de l'essai, sauf résiliation avant. L'achat à vie est un paiement unique.")}
       <a href="${PRO_TERMS}" target="_blank" rel="noopener">${L("Conditions d'utilisation")}</a> · <a href="${PRO_PRIVACY}" target="_blank" rel="noopener">${L("Confidentialité")}</a></p>
   </div>`;

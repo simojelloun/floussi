@@ -23,6 +23,7 @@ document.addEventListener("click", e => {
   if (a === "fc") { fcH = el.dataset.v; return render(); }
   if (a === "cal") openCal(el.dataset.for);
   else if (a === "cal-pick") pickDate(el.dataset.d);
+  else if (a === "cal-ok") pickDate(calCtx.sel || $("#" + CSS.escape(calCtx.id)).value);
   else if (a === "cal-nav") { const n = +el.dataset.n; calCtx.view = shiftMonth(calCtx.view, n); calCtx.focus = shiftMonth(calCtx.focus.slice(0, 7), n) + calCtx.focus.slice(7); renderCal(false); }
   else if (a === "cal-close") closeCal();
   else if (a === "day-clear") { dayFilter = ""; render(); announce(L("Tout le mois")); }
@@ -135,6 +136,8 @@ document.addEventListener("click", e => {
   else if (a === "fs") fsOpen(el.dataset.k);
   else if (a === "pro") openPro(el.dataset.why);
   else if (a === "pro-buy") proBuy(el.dataset.plan);
+  else if (a === "transfer-prep") { if (canCloud()) doCloudBackup(); else doBackup(); }
+  else if (a === "go-transfer") { proBack = null; closeSheet(); location.hash = "transfert"; }
   else if (a === "pro-restore") proRestore();
   else if (a === "pro-manage") proManage();
   else if (a === "fs-close") fsClose();
@@ -181,7 +184,7 @@ document.addEventListener("change", async e => {
   if (id === "ov-cur") { P.ovCur = e.target.value; savePrefs(); render(); announce(L("Vue d'ensemble en ") + plural(e.target.value)); return; }
   if (id === "base-cur") { setBase(e.target.value); return; }
   if (draft && id === "f-cat") { draft.catTouched = true; draft.cat = e.target.value; markTiles(); const tb = $("#f-cat-btn"); if (tb) tb.focus(); announce(L("Catégorie : ") + catLabel(draft.cat)); return; }
-  if (draft && id === "f-date") { setDateField("f-date", e.target.value); draft.date = e.target.value; }
+  if (draft && id === "f-date") { setDateField("f-date", e.target.value); draft.date = e.target.value; const tm = document.getElementById("f-date-tm"); if (tm) draft.time = tm.value; }
   if (id === "q-all") { searchAll = e.target.checked; render(); announce(plur(opsList().length, L("résultat"), L("résultats"))); return; }
   if (id === "f-photo" && e.target.files[0] && draft) {
     try { readTx(); draft.photo = await toPhoto(e.target.files[0]); $("#ph-box").innerHTML = phBox(draft); const b = $("#sheet").querySelector(".ph-thumb"); if (b) b.focus(); announce(L("Photo ajoutée")); }
