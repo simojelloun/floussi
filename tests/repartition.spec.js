@@ -106,3 +106,23 @@ test("répartir une échéance déjà payée la garde payée", async ({ page }) 
   expect(await page.evaluate(() => allTx().filter(t => t.date === today() && t.note === "Loyer").reduce((s, t) => s + t.amt, 0))).toBe(300000);
   sansErreur(page);
 });
+
+test("plus grosses dépenses : une opération répartie compte une fois, pour sa somme", async ({ page }) => {
+  await ouvrir(page);
+  const r = await page.evaluate(() => {
+    const a = S.meta.accounts[0].id, c = cats("dep").filter(x => !x.parent), g = "g-" + uid(), d = today();
+    // trois lignes de 4 000 : aucune n'est la plus grosse seule, mais leur somme (12 000) l'est
+    for (let i = 0; i < 3; i++) putTx({id: uid(), t: "dep", amt: 400000, acc: a, cat: c[i].id, date: d, note: "Courses du mois", grp: g});
+    putTx({id: uid(), t: "dep", amt: 900000, acc: a, cat: c[0].id, date: d, note: "Seule"});
+    const F = statF(), deps = allTx().filter(t => t.t === "dep" && t.date === d && F.has(acc(t.acc)));
+    const big = bigDeps(deps, acc(a).cur, 5);
+    return {first: big[0].v, n: big[0].g.length, second: big[1].v, count: big.filter(x => x.t.grp === g).length};
+  });
+  expect(r.first).toBe(1200000); expect(r.n).toBe(3); expect(r.second).toBe(900000); expect(r.count).toBe(1);
+  await page.evaluate(() => { location.hash = "stats"; statView = "more"; anaSel = "where"; setPreset("month"); render(); });
+  const rows = page.locator("#view .ana-body .card").first().locator(".row");
+  await expect(rows.first()).toContainText("Courses du mois");
+  await expect(rows.first()).toContainText("3 lignes");
+  await expect(page.locator("#view .ana-body .card").first().locator(".row", { hasText: "Courses du mois" })).toHaveCount(1);
+  sansErreur(page);
+});

@@ -33,6 +33,22 @@ function toastDel(m) {
 }
 const accSorted = () => [...S.meta.accounts].sort((a, b) => (b.pin !== false) - (a.pin !== false));
 const accOpts = (sel, list) => (list || accSorted()).map(a => `<option value="${esc(a.id)}" ${a.id === sel ? "selected" : ""}>${esc(a.name)} (${esc(sym(a.cur))})</option>`).join("");
+/* devises du monde proposées à la création d'un compte ou d'une devise (nom et symbole donnés par le téléphone, dans la langue de l'appli) */
+const hasCur = c => S.meta.currencies.some(x => x.code === c);
+const WORLD_CUR = "MAD EUR USD GBP CHF CAD AUD NZD JPY CNY INR PKR BDT IDR MYR SGD HKD KRW THB PHP VND TRY RUB UAH PLN CZK HUF RON BGN SEK NOK DKK ISK DZD TND EGP LYD MRU SDG SAR AED QAR KWD BHD OMR JOD LBP SYP IQD YER ILS IRR XOF XAF NGN GHS KES ZAR ETB MXN BRL ARS CLP COP PEN".split(" ");
+function curInfo(code) {
+  let name = code, sym = code;
+  try { name = new Intl.DisplayNames([LOCALE], {type: "currency"}).of(code) || code; } catch (e) {}
+  try { sym = (new Intl.NumberFormat(LOCALE, {style: "currency", currency: code, currencyDisplay: "narrowSymbol"}).formatToParts(1).find(p => p.type === "currency") || {}).value || code; } catch (e) {}
+  return {code, name: name.charAt(0).toUpperCase() + name.slice(1), plural: name.toLowerCase(), sym: sym.slice(0, 4)};
+}
+const worldOthers = () => WORLD_CUR.filter(c => !hasCur(c)).map(curInfo).sort((a, b) => a.name.localeCompare(b.name, LOCALE));
+/* liste « mes devises » puis « autres devises » : en choisir une autre l'ajoute à l'enregistrement */
+const curOptsAll = sel => `<optgroup label="${esc(L("Mes devises"))}">${curOpts(sel)}</optgroup><optgroup label="${esc(L("Autres devises"))}">${worldOthers().map(c => `<option value="${c.code}">${esc(c.name)} (${esc(c.code)})</option>`).join("")}</optgroup>`;
+document.addEventListener("change", e => {
+  if (e.target.id === "f-cur") { const w = document.getElementById("f-newrate-w"); if (w) { w.hidden = hasCur(e.target.value); if (!w.hidden) { const i = curInfo(e.target.value); document.getElementById("f-newrate-l").textContent = L("Valeur de 1") + " " + i.plural + " " + L("en") + " " + plural(base()); } } }
+  if (e.target.id === "f-pick" && e.target.value) { const i = curInfo(e.target.value); $("#f-code").value = i.code; $("#f-name").value = i.name; $("#f-plural").value = i.plural; $("#f-sym").value = i.sym; $("#f-rate").focus(); }
+});
 const curOpts = sel => S.meta.currencies.map(c => `<option value="${esc(c.code)}" ${c.code === sel ? "selected" : ""}>${esc(c.name)} (${esc(c.sym)})</option>`).join("");
 const radios = (name, legend, opts, sel, vis) => `<fieldset class="f"><legend class="${vis ? "" : "sr"}">${legend}</legend><div class="seg">${opts.map(([k, l]) => `<label><input type="radio" name="${name}" id="f-${name}-${k}" value="${k}" ${sel === k ? "checked" : ""}><span>${l}</span></label>`).join("")}</div></fieldset>`;
 const freqSelect = (sel, withNone) => `<select id="f-rep">${withNone ? `<option value="none" ${sel === "none" ? "selected" : ""}>${L("Jamais")}</option>` : ""}${FREQS.map(([k, l]) => `<option value="${k}" ${sel === k ? "selected" : ""}>${l}</option>`).join("")}</select>`;
@@ -280,8 +296,9 @@ function openAcc(a) {
   const used = a && allTx().some(t => t.acc === a.id || t.to === a.id);
   openSheet(head(a ? L("Modifier le compte") : L("Nouveau compte")) + `<form novalidate>
     <label class="f"><span>${L("Nom du compte")}</span><input type="text" id="f-name" maxlength="40" value="${esc(a ? a.name : "")}" placeholder="${L("Par exemple : Livret, CIH, Espèces")}"></label>
-    <div class="f2"><label class="f"><span>${L("Devise")}</span><select id="f-cur" ${used ? `disabled aria-describedby="cur-lock"` : ""}>${curOpts(a ? a.cur : base())}</select></label>
+    <div class="f2"><label class="f"><span>${L("Devise")}</span><select id="f-cur" ${used ? `disabled aria-describedby="cur-lock"` : ""}>${used ? curOpts(a.cur) : curOptsAll(a ? a.cur : base())}</select></label>
     <label class="f"><span>${L("Solde de départ")}</span><input type="text" inputmode="decimal" id="f-init" value="${a ? plain(a.initial) : ""}" placeholder="0,00"></label></div>
+    <div id="f-newrate-w" hidden><label class="f"><span id="f-newrate-l"></span><input type="text" inputmode="decimal" id="f-newrate" placeholder="${L("Par exemple : 12,45")}" aria-describedby="f-newrate-h"></label><small class="hint" id="f-newrate-h" style="margin:0">${L("Cette devise sera ajoutée à vos devises. Son cours reste modifiable dans Réglages › Devises.")}</small></div>
     ${used ? `<small class="hint" id="cur-lock" style="margin:0">${L("La devise ne peut plus changer : ce compte contient déjà des opérations.")}</small>` : ""}
     <fieldset><legend>${L("Couleur du compte")}</legend><div class="swatches">${COLORS.map(([h, n]) => `<label><input type="radio" name="acolor" value="${h}" ${(a ? a.color : COLORS[(S.meta.accounts.length * 3) % COLORS.length][0]) === h ? "checked" : ""}><span class="dot" style="--c:${h}" aria-hidden="true"></span><span class="sr">${n}</span></label>`).join("")}</div></fieldset>
     <div class="err" id="f-err" role="alert"></div>
@@ -290,6 +307,12 @@ function openAcc(a) {
     if (!name) return err(L("Donnez un nom au compte."), "f-name");
     if (isNaN(init)) return err(L("Le solde de départ doit être un nombre, par exemple 1500,00."), "f-init");
     const color = (document.querySelector('input[name="acolor"]:checked') || {}).value || COLORS[0][0];
+    const cc = used ? a.cur : $("#f-cur").value;
+    if (!hasCur(cc)) { /* devise pas encore dans l'appli : on l'ajoute avec le cours saisi */
+      const rate = parseNum($("#f-newrate").value); if (!(rate > 0)) return err(L("Saisissez un cours supérieur à zéro, par exemple 12,45."), "f-newrate");
+      if (overLimit("cur", S.meta.currencies.length)) return;
+      S.meta.currencies.push({...curInfo(cc), rate}); S.meta.ratesDate = today();
+    }
     if (a) { a.name = name; a.initial = init; a.color = color; if (!used) a.cur = $("#f-cur").value; }
     else S.meta.accounts.push({id: "a-" + uid(), name, cur: $("#f-cur").value, initial: init, color});
     touch("meta"); closeSheet(); render(); toast(a ? L("Compte modifié") : L("Compte ajouté"));
@@ -314,7 +337,8 @@ const curUsed = code => S.meta.accounts.some(a => a.cur === code) || S.meta.budg
 function openCur(c) {
   const b = base(), isB = c && c.code === b;
   openSheet(head(c ? L("Modifier la devise ") + esc(c.name) : L("Nouvelle devise")) + `<form novalidate>
-    ${c ? "" : `<label class="f"><span>${L("Code à trois lettres")}</span><input type="text" id="f-code" maxlength="3" autocomplete="off" placeholder="${L("Par exemple : GBP")}" style="text-transform:uppercase"></label>`}
+    ${c ? "" : `<label class="f"><span>${L("Choisir dans la liste")}</span><select id="f-pick"><option value="">${L("Autre devise (saisie libre)")}</option>${worldOthers().map(x => `<option value="${x.code}">${esc(x.name)} (${esc(x.code)})</option>`).join("")}</select></label>
+    <label class="f"><span>${L("Code à trois lettres")}</span><input type="text" id="f-code" maxlength="3" autocomplete="off" placeholder="${L("Par exemple : GBP")}" style="text-transform:uppercase"></label>`}
     <div class="f2"><label class="f"><span>${L("Nom")}</span><input type="text" id="f-name" maxlength="30" value="${esc(c ? c.name : "")}" placeholder="${L("Livre sterling")}"></label>
     <label class="f"><span>${L("Nom au pluriel")}</span><input type="text" id="f-plural" maxlength="30" value="${esc(c ? c.plural : "")}" placeholder="${L("livres sterling")}" aria-describedby="plural-hint"></label></div>
     <small class="hint" id="plural-hint" style="margin:0">${L("Le pluriel sert à la lecture des montants par la synthèse vocale.")}</small>

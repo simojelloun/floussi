@@ -828,3 +828,11 @@ svg.ce .ce-hi{font-weight:800;fill:var(--text)}
 .tr-step > div{display:flex;flex-direction:column;gap:8px;min-width:0}.tr-step p{margin:0}
 .tr-n{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:14px;background:color-mix(in srgb,var(--accent) 15%,transparent);color:var(--accent)}
 .tr-warn{margin:0;padding:8px 10px;border-radius:10px;font-size:13px;background:color-mix(in srgb,#eda100 16%,transparent);color:var(--ink)}
+.pk-l .pk-g{padding:12px 6px 4px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+/* encoche et Dynamic Island : le haut de l'écran n'est jamais sous la zone de l'appareil photo */
+.top{padding-top:calc(16px + env(safe-area-inset-top))}
+#app{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+.sheet{max-height:min(92%,calc(100% - env(safe-area-inset-top) - 12px))}
+.pk{max-height:min(78%,calc(100% - env(safe-area-inset-top) - 12px))}
+.lock{padding-top:calc(24px + env(safe-area-inset-top))}
+@media print{.top{padding-top:16px}}

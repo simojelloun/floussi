@@ -23,10 +23,12 @@ function openPick(id, sub) {
   const pk = $("#pick");
   pk.innerHTML = `<div class="pk" role="dialog" aria-modal="true" aria-labelledby="pk-t"><h2 id="pk-t" tabindex="-1">${esc(sel._lab || L("Choisir"))}<button type="button" data-act="pick-close" aria-label="${esc(L("Fermer"))}">×</button></h2>
     ${opts.length > 10 ? `<input type="search" id="pk-q" placeholder="${esc(L("Rechercher"))}" aria-label="${esc(L("Rechercher"))}" autocomplete="off">` : ""}
-    <ul class="pk-l plain" role="listbox" aria-labelledby="pk-t">${opts.map((o, i) => `<li role="none" data-n="${esc(norm(o.textContent))}"><button type="button" role="option" aria-selected="${o.selected}" data-act="pick-opt" data-i="${i}"${o.disabled ? " disabled" : ""}>${optChip(o.value)}<span>${esc(o.textContent)}</span><span class="pk-c" aria-hidden="true">${o.selected ? "✓" : ""}</span></button></li>`).join("")}</ul></div>`;
+    <ul class="pk-l plain" role="listbox" aria-labelledby="pk-t">${opts.map((o, i) => pkGrp(o) + `<li role="none" data-n="${esc(norm(o.textContent))}"><button type="button" role="option" aria-selected="${o.selected}" data-act="pick-opt" data-i="${i}"${o.disabled ? " disabled" : ""}>${optChip(o.value)}<span>${esc(o.textContent)}</span><span class="pk-c" aria-hidden="true">${o.selected ? "✓" : ""}</span></button></li>`).join("")}</ul></div>`;
   const cur = pk.querySelector('[aria-selected="true"]') || pk.querySelector("[role=option]"); if (cur) { cur.focus(); cur.scrollIntoView({block: "center"}); }
 }
 /* catégories : d'abord les catégories principales, puis un sous-menu pour leurs sous-catégories */
+/* titre d'un groupe d'options (<optgroup>) dans la liste */
+const pkGrp = o => o.parentElement.tagName === "OPTGROUP" && o === o.parentElement.firstElementChild ? `<li class="pk-g" role="presentation" data-n="">${esc(o.parentElement.label)}</li>` : "";
 function renderPickTree(focus) {
   const c = pkCtx, sel = document.getElementById(c.id); if (!sel) return closePick(true);
   const opts = [...sel.options], cur = sel.value, kidsOf = v => opts.filter(o => o.dataset.p === v), short = o => { const pc = cat(o.dataset.p); return pc && o.textContent.startsWith(pc.name + " : ") ? o.textContent.slice(pc.name.length + 3) : o.textContent; };
@@ -36,7 +38,7 @@ function renderPickTree(focus) {
   else if (c.sub) {
     const po = opts.find(o => o.value === c.sub); title = po ? po.textContent : title;
     body = `<li role="none"><button type="button" class="pk-back" data-act="pick-back"><span aria-hidden="true">‹</span><span>${L("Toutes les catégories")}</span></button></li>` + (po ? optBtn(po, po.textContent + " " + L("(sans précision)")) : "") + kidsOf(c.sub).map(o => optBtn(o, short(o))).join("");
-  } else body = opts.filter(o => !o.dataset.p).map(o => { const k = kidsOf(o.value); if (!k.length) return optBtn(o, o.textContent);
+  } else body = opts.filter(o => !o.dataset.p).map(o => { const k = kidsOf(o.value); if (!k.length) return pkGrp(o) + optBtn(o, o.textContent);
       const inSub = k.find(x => x.value === cur), on = o.value === cur || inSub;
       return `<li role="none"><button type="button" role="option" aria-selected="${!!on}" aria-haspopup="true" data-act="pick-sub" data-v="${esc(o.value)}" aria-label="${esc(o.textContent + ", " + plur(k.length, L("sous-catégorie"), L("sous-catégories")) + (inSub ? ", " + L("choisie : ") + short(inSub) : o.value === cur ? ", " + L("choisie") : ""))}">${optChip(o.value)}<span>${esc(o.textContent)}<small>${inSub ? esc(short(inSub)) : plur(k.length, L("sous-catégorie"), L("sous-catégories"))}</small></span><span class="pk-c" aria-hidden="true">${on ? "✓ " : ""}›</span></button></li>`; }).join("");
   if (c.add) return renderPickAdd();

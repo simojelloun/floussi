@@ -251,3 +251,18 @@ test("changer de téléphone : lien depuis Floussi Pro, restaurer, cas iPhone ve
   expect(await page.evaluate(() => __appels.some(a => a[0] === "restaurer"))).toBe(true);
   expect(page.erreurs).toEqual([]);
 });
+
+test("version gratuite : un compte dans une 3e devise ouvre l'offre Pro", async ({ page }) => {
+  await natif(page);
+  await page.evaluate(() => { demo = false; S = {meta: startMeta(), months: {}}; S.meta.accounts = S.meta.accounts.slice(0, 1); render(); });
+  expect(await page.evaluate(() => S.meta.currencies.length)).toBe(2);
+  await page.evaluate(() => openAcc());
+  await page.fill("#f-name", "Voyage");
+  await page.evaluate(() => { const s = document.getElementById("f-cur"); s.value = "GBP"; s.dispatchEvent(new Event("change", {bubbles: true})); });
+  await page.fill("#f-newrate", "12,8");
+  await page.click('#sheet button[type="submit"]');
+  await expect(page.locator("#sheet")).toContainText("Floussi Pro");
+  expect(await page.evaluate(() => S.meta.currencies.length)).toBe(2);
+  expect(await page.evaluate(() => S.meta.accounts.length)).toBe(1);
+  expect(page.erreurs).toEqual([]);
+});

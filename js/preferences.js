@@ -21,6 +21,6 @@ function applyPrefs() {
 :root[data-theme="dark"]:not([data-mode="light"]),:root[data-mode="dark"]{${dk}}`;
   if (pro && P.style === "glass") root.setAttribute("data-style", "glass"); else root.removeAttribute("data-style");
   root.classList.toggle("nozoom", !P.zoom);
-  $("#vp").setAttribute("content", P.zoom ? "width=device-width, initial-scale=1" : "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no");
+  $("#vp").setAttribute("content", P.zoom ? "width=device-width, initial-scale=1, viewport-fit=cover" : "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover");
 }
 applyPrefs();
