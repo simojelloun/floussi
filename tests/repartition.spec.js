@@ -126,3 +126,24 @@ test("plus grosses dépenses : une opération répartie compte une fois, pour sa
   await expect(page.locator("#view .ana-body .card").first().locator(".row", { hasText: "Courses du mois" })).toHaveCount(1);
   sansErreur(page);
 });
+
+test("opération répartie avec une ligne négative : c'est le net qui compte (1000 − 600 = 400)", async ({ page }) => {
+  await ouvrir(page);
+  const r = await page.evaluate(() => {
+    demo = false; S = {meta: startMeta(), months: {}};
+    const a = S.meta.accounts[0].id, c = cats("dep").filter(x => !x.parent)[0].id, g = "g-" + uid(), d = today(), dc = acc(a).cur;
+    putTx({id: uid(), t: "dep", amt: 100000, acc: a, cat: c, date: d, note: "Restaurant", grp: g});
+    putTx({id: uid(), t: "dep", amt: -60000, acc: a, cat: c, date: d, note: "Restaurant", grp: g});
+    render();
+    const F = statF(), f = flowsBetween(d, d, F), deps = allTx().filter(t => t.t === "dep");
+    return {cat: f.byTop.dep[c], dep: f.dep, big: bigDeps(deps, dc).map(x => x.v), bal: balAt(acc(a), d) - (acc(a).initial || 0)};
+  });
+  expect(r.cat).toBe(40000); expect(r.dep).toBe(40000); expect(r.big).toEqual([40000]); expect(r.bal).toBe(-40000);
+  await page.evaluate(() => { location.hash = "stats"; setPreset("month"); statView = "more"; anaSel = "where"; render(); });
+  const row = page.locator("#view .ana-body .card").first().locator(".row");
+  await expect(row).toHaveCount(1);
+  await expect(row).toContainText("400,00");
+  await page.evaluate(() => { anaSel = "when"; render(); });
+  await expect(page.locator("#view")).not.toContainText("1 000,00");
+  sansErreur(page);
+});

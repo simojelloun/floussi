@@ -368,10 +368,10 @@ function txRow(t, withDate, inGrp) {
 /* plus grosses dépenses : une opération répartie compte une seule fois, pour la somme de ses lignes de dépense */
 function bigDeps(deps, dc, n) {
   const v = t => conv(t.amt, acc(t.acc).cur, dc), out = [], seen = {};
-  for (const t of deps) { if (!(t.amt > 0)) continue;
+  for (const t of deps) { /* une ligne négative (remise, part remboursée) réduit le total de son opération */
     if (!t.grp) { out.push({t, v: v(t), g: [t]}); continue; }
     if (seen[t.grp]) { seen[t.grp].v += v(t); seen[t.grp].g.push(t); } else out.push(seen[t.grp] = {t, v: v(t), g: [t]}); }
-  return out.sort((a, b) => b.v - a.v).slice(0, n || 5);
+  return out.filter(x => x.v > 0).sort((a, b) => b.v - a.v).slice(0, n || 5);
 }
 function bigRow(x, dc) {
   if (x.g.length < 2) return txRow(x.t, true);
@@ -600,7 +600,7 @@ function insights(F, f, dc) {
   const pTo = addD(range.from, -1), pFrom = addD(pTo, -(len - 1)), pf = flowsBetween(pFrom, pTo, F);
   const rate = f.rev > 0 ? Math.round((f.rev - f.dep) / f.rev * 100) : null, rc = rate == null ? 0 : Math.max(0, Math.min(100, rate)), C = 2 * Math.PI * 30;
   const delta = (now, prev, goodUp) => { if (!prev) return `<span class="delta">–</span>`; const pc = Math.round((now - prev) / prev * 100), up = pc > 0; return `<span class="delta ${pc === 0 ? "" : up === goodUp ? "good" : "bad"}">${up ? "+" : pc < 0 ? "−" : ""}${Math.abs(pc)} %</span>`; };
-  const wd = Array(7).fill(0); deps.forEach(t => { const [y, m, d] = t.date.split("-").map(Number); wd[(new Date(y, m - 1, d).getDay() + 6) % 7] += Math.max(0, v(t)); });
+  const wd = Array(7).fill(0); deps.forEach(t => { const [y, m, d] = t.date.split("-").map(Number); wd[(new Date(y, m - 1, d).getDay() + 6) % 7] += v(t); }); for (let i = 0; i < 7; i++) wd[i] = Math.max(0, wd[i]);
   const wmax = Math.max(...wd, 1), wnames = [...Array(7)].map((_, i) => new Intl.DateTimeFormat(LOCALE, {weekday: "short"}).format(new Date(2024, 0, 1 + i)).replace(".", "")), wlong = [...Array(7)].map((_, i) => new Intl.DateTimeFormat(LOCALE, {weekday: "long"}).format(new Date(2024, 0, 1 + i))), wtop = wd.indexOf(Math.max(...wd));
   const byAcc = {}; deps.forEach(t => byAcc[t.acc] = (byAcc[t.acc] || 0) + v(t)); const accRows = Object.entries(byAcc).sort((a, b) => b[1] - a[1]), amax = accRows.length ? accRows[0][1] : 1;
   const top = bigDeps(deps, dc);
@@ -643,7 +643,7 @@ function insights2(F, f, dc) {
     <text x="${X0}" y="${Y0 + H + 16}">${dm(range.from).slice(0, 5)}</text><text x="${X0 + W}" y="${Y0 + H + 16}" text-anchor="end">${dm(range.to).slice(0, 5)}</text></svg>`;
   // calendrier du dernier mois de la période
   const hm = end.slice(0, 7), [hy, hmo] = hm.split("-").map(Number), nd = new Date(hy, hmo, 0).getDate(), lead = (new Date(hy, hmo - 1, 1).getDay() + 6) % 7;
-  const mdays = [...Array(nd)].map((_, i) => hm + "-" + pad(i + 1)), mvals = mdays.map(d => all.filter(t => t.date === d).reduce((z, t) => z + Math.max(0, v(t)), 0)), mmax = Math.max(...mvals, 1);
+  const mdays = [...Array(nd)].map((_, i) => hm + "-" + pad(i + 1)), mvals = mdays.map(d => Math.max(0, all.filter(t => t.date === d).reduce((z, t) => z + v(t), 0))), mmax = Math.max(...mvals, 1);
   const wn = [...Array(7)].map((_, i) => new Intl.DateTimeFormat(LOCALE, {weekday: "narrow"}).format(new Date(2024, 0, 1 + i)));
   const heat = `<div class="heat" aria-hidden="true">${wn.map(w => `<span class="hw">${esc(w)}</span>`).join("")}${"<span></span>".repeat(lead)}${mvals.map((x, i) => `<span class="hc${mdays[i] === t0 ? " today" : ""}" style="--p:${x ? Math.round(18 + x / mmax * 72) : 0}%" title="${esc(dm(mdays[i]) + " : " + fmt(x, dc))}">${i + 1}</span>`).join("")}</div>`;
   // record, jours sans dépense
@@ -904,7 +904,7 @@ function anaInfo(F, f, dc) {
   const deps = allTx().filter(t => t.t === "dep" && t.date >= range.from && t.date <= range.to && F.has(acc(t.acc)));
   const len = dayN(range.from, range.to), pTo = addD(range.from, -1), pf = flowsBetween(addD(pTo, -(len - 1)), pTo, F);
   const rate = f.rev > 0 ? Math.round((f.rev - f.dep) / f.rev * 100) : null, dp = pf.dep ? Math.round((f.dep - pf.dep) / pf.dep * 100) : null;
-  const wd = Array(7).fill(0); deps.forEach(t => { const [y, m, d] = t.date.split("-").map(Number); wd[(new Date(y, m - 1, d).getDay() + 6) % 7] += Math.max(0, v(t)); });
+  const wd = Array(7).fill(0); deps.forEach(t => { const [y, m, d] = t.date.split("-").map(Number); wd[(new Date(y, m - 1, d).getDay() + 6) % 7] += v(t); }); for (let i = 0; i < 7; i++) wd[i] = Math.max(0, wd[i]);
   const wtop = wd.indexOf(Math.max(...wd)), big = bigDeps(deps, dc, 1)[0];
   const fp = f.dep > 0 ? Math.max(0, Math.min(100, Math.round(deps.filter(t => t.rec).reduce((z, t) => z + v(t), 0) / f.dep * 100))) : null;
   const rv = Object.entries(f.byTop.rev).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1])[0], net = f.rev - f.dep;
